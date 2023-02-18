@@ -78,10 +78,10 @@
 		6EDA6766299E63EE0071C5D6 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				6EF21657299BDF330036DE39 /* AppInfoViewController.swift */,
+				6EF21651299BDEE80036DE39 /* BlogPostViewController.swift */,
 				6EF21653299BDF040036DE39 /* BookmarkViewController.swift */,
 				6EF21655299BDF220036DE39 /* ConfigurationViewController.swift */,
-				6EF21651299BDEE80036DE39 /* BlogPostViewController.swift */,
+				6EF21657299BDF330036DE39 /* AppInfoViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -349,8 +349,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZS7K5599Y5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Dev_Floor/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -365,6 +367,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.AKAPUCH.Dev-Floor";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -376,8 +379,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZS7K5599Y5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Dev_Floor/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -392,6 +397,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.AKAPUCH.Dev-Floor";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

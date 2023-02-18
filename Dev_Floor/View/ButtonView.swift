@@ -15,10 +15,11 @@ class ButtonView: UIView {
     lazy var button3 : UIButton = createButton()
     lazy var button4 : UIButton = createButton()
     
+    
     lazy var stack : UIStackView = {
         let stacks = UIStackView(arrangedSubviews: [button1,button2,button3,button4])
         stacks.axis = .vertical
-        stacks.spacing = 50
+        stacks.spacing = 30
         stacks.distribution = .fillEqually
         stacks.alignment = .fill
         stacks.translatesAutoresizingMaskIntoConstraints = false
@@ -64,6 +65,7 @@ class ButtonView: UIView {
         }
     }
     
+
     
     
     

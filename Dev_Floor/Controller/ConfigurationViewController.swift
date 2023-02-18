@@ -10,13 +10,21 @@ import SnapKit
 class ConfigurationViewController: UIViewController {
     
     let buttonView = ButtonView()
-
+    
+    lazy var darkmodeSwitch : UISwitch = {
+       let settings = UISwitch()
+        settings.isUserInteractionEnabled = true
+        settings.addTarget(self, action: #selector(onClickSwitch), for: .touchUpInside)
+        return settings
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         setNavi()
         setUI()
+        addSwitch()
+//        swipeRecognizer()
         // Do any additional setup after loading the view.
     }
     
@@ -24,7 +32,20 @@ class ConfigurationViewController: UIViewController {
         self.view = buttonView
     }
     
+//    func swipeRecognizer() {
+//        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(self.respondToSwipeGesture(_:)))
+////        swipeRight.direction = UISwipeGestureRecognizer.Direction.right
+//        self.view.addGestureRecognizer(swipeRight)
+//
+//    }
     
+    func addSwitch() {
+        buttonView.button4.addSubview(darkmodeSwitch)
+        darkmodeSwitch.snp.makeConstraints { make in
+            make.centerY.equalToSuperview()
+            make.trailing.equalToSuperview().offset(-10)
+        }
+    }
     
     func setNavi() {
         
@@ -50,7 +71,43 @@ class ConfigurationViewController: UIViewController {
         buttonView.button2.setTitle("위젯 설정", for: .normal)
         buttonView.button3.setTitle("테마 변경", for: .normal)
         buttonView.button4.setTitle("다크 모드", for: .normal)
+        self.view.accessibilityIgnoresInvertColors = true
+        
+        
     }
+    
+    @objc func onClickSwitch(_ sender : UISwitch) {
+        if #available(iOS 13.0, *) {
+           let windowScene = UIApplication.shared.connectedScenes.first as! UIWindowScene
+            if sender.isOn {
+                print("다크모드")
+                windowScene.keyWindow?.overrideUserInterfaceStyle = .dark
+                
+            } else {
+                print("화이트모드")
+                windowScene.keyWindow?.overrideUserInterfaceStyle = .light
+                
+            }
+        }
+    }
+    
+
+
+    
+//    @objc func respondToSwipeGesture(_ gesture: UIGestureRecognizer){
+//        if let swipeGesture = gesture as? UISwipeGestureRecognizer {
+//            switch swipeGesture.direction{
+//            case UISwipeGestureRecognizer.Direction.right:
+//                // 스와이프 시, 원하는 기능 구현.
+//                let nextVC = AppInfoViewController()
+//                self.present(nextVC, animated: true)
+//            default:
+//                let nextVC = BookmarkViewController()
+//                self.present(nextVC, animated: true)
+//            }
+//        }
+//    }
+
 
     /*
     // MARK: - Navigation
