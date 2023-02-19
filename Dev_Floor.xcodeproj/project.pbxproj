@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E4852CB29A26F8E00B9B861 /* blog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4852CA29A26F8E00B9B861 /* blog.swift */; };
+		6E9E437D29A21EA300C25AD2 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 6E9E437C29A21EA300C25AD2 /* Yams */; };
+		6E9E438229A2359E00C25AD2 /* Yaml in Frameworks */ = {isa = PBXBuildFile; productRef = 6E9E438129A2359E00C25AD2 /* Yaml */; };
 		6EDA6768299E64770071C5D6 /* ButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA6767299E64770071C5D6 /* ButtonView.swift */; };
 		6EDA676A299E64ED0071C5D6 /* ListTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA6769299E64ED0071C5D6 /* ListTableViewCell.swift */; };
 		6EDA676D299F46D30071C5D6 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6EDA676C299F46D30071C5D6 /* SnapKit */; };
-		6EDA676F299F69910071C5D6 /* blog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA676E299F69910071C5D6 /* blog.swift */; };
 		6EF21634299BBFAB0036DE39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF21633299BBFAB0036DE39 /* AppDelegate.swift */; };
 		6EF21636299BBFAB0036DE39 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF21635299BBFAB0036DE39 /* SceneDelegate.swift */; };
 		6EF2163B299BBFAB0036DE39 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6EF21639299BBFAB0036DE39 /* Main.storyboard */; };
@@ -25,9 +27,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6E4852CA29A26F8E00B9B861 /* blog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = blog.swift; sourceTree = "<group>"; };
 		6EDA6767299E64770071C5D6 /* ButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonView.swift; sourceTree = "<group>"; };
 		6EDA6769299E64ED0071C5D6 /* ListTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListTableViewCell.swift; sourceTree = "<group>"; };
-		6EDA676E299F69910071C5D6 /* blog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = blog.swift; sourceTree = "<group>"; };
 		6EF21630299BBFAB0036DE39 /* Dev_Floor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dev_Floor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EF21633299BBFAB0036DE39 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6EF21635299BBFAB0036DE39 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -48,13 +50,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E9E437D29A21EA300C25AD2 /* Yams in Frameworks */,
 				6EDA676D299F46D30071C5D6 /* SnapKit in Frameworks */,
+				6E9E438229A2359E00C25AD2 /* Yaml in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6E9E438329A2362F00C25AD2 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
 		6EDA6764299E63D80071C5D6 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -70,7 +81,7 @@
 			isa = PBXGroup;
 			children = (
 				6EF2163C299BBFAB0036DE39 /* Dev_Floor.xcdatamodeld */,
-				6EDA676E299F69910071C5D6 /* blog.swift */,
+				6E4852CA29A26F8E00B9B861 /* blog.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -106,6 +117,7 @@
 		6EF21632299BBFAB0036DE39 /* Dev_Floor */ = {
 			isa = PBXGroup;
 			children = (
+				6E9E438329A2362F00C25AD2 /* Networking */,
 				6EF21633299BBFAB0036DE39 /* AppDelegate.swift */,
 				6EF21635299BBFAB0036DE39 /* SceneDelegate.swift */,
 				6EDA6766299E63EE0071C5D6 /* Controller */,
@@ -135,6 +147,8 @@
 			name = Dev_Floor;
 			packageProductDependencies = (
 				6EDA676C299F46D30071C5D6 /* SnapKit */,
+				6E9E437C29A21EA300C25AD2 /* Yams */,
+				6E9E438129A2359E00C25AD2 /* Yaml */,
 			);
 			productName = Dev_Floor;
 			productReference = 6EF21630299BBFAB0036DE39 /* Dev_Floor.app */;
@@ -166,6 +180,8 @@
 			mainGroup = 6EF21627299BBFAB0036DE39;
 			packageReferences = (
 				6EDA676B299F46D30071C5D6 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				6E9E437B29A21EA300C25AD2 /* XCRemoteSwiftPackageReference "Yams" */,
+				6E9E438029A2359E00C25AD2 /* XCRemoteSwiftPackageReference "YamlSwift" */,
 			);
 			productRefGroup = 6EF21631299BBFAB0036DE39 /* Products */;
 			projectDirPath = "";
@@ -204,7 +220,7 @@
 				6EF21658299BDF330036DE39 /* AppInfoViewController.swift in Sources */,
 				6EF21654299BDF040036DE39 /* BookmarkViewController.swift in Sources */,
 				6EF21656299BDF220036DE39 /* ConfigurationViewController.swift in Sources */,
-				6EDA676F299F69910071C5D6 /* blog.swift in Sources */,
+				6E4852CB29A26F8E00B9B861 /* blog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -428,6 +444,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		6E9E437B29A21EA300C25AD2 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		6E9E438029A2359E00C25AD2 /* XCRemoteSwiftPackageReference "YamlSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/behrang/YamlSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 		6EDA676B299F46D30071C5D6 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -439,6 +471,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6E9E437C29A21EA300C25AD2 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E9E437B29A21EA300C25AD2 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+		6E9E438129A2359E00C25AD2 /* Yaml */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E9E438029A2359E00C25AD2 /* XCRemoteSwiftPackageReference "YamlSwift" */;
+			productName = Yaml;
+		};
 		6EDA676C299F46D30071C5D6 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6EDA676B299F46D30071C5D6 /* XCRemoteSwiftPackageReference "SnapKit" */;

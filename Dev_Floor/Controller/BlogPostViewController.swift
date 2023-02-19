@@ -10,7 +10,7 @@ import UIKit
 final class BlogPostViewController: UIViewController {
 
     private let tableView = UITableView()
-    
+    var blogs : [blog] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,7 +18,21 @@ final class BlogPostViewController: UIViewController {
         setNavi()
         setTable()
         setConstraints()
+        getJsonData()
         // Do any additional setup after loading the view.
+    }
+    
+    func getJsonData() {
+        let jsonDecoder : JSONDecoder = JSONDecoder()
+        
+        guard let dataAsset1 : NSDataAsset = NSDataAsset.init(name: "devBlog" ) else {return}
+        
+        do{
+            self.blogs = try jsonDecoder.decode([blog].self, from: dataAsset1.data)
+        }catch {
+            print(error.localizedDescription)
+        }
+//        print(blogs)
     }
     
     func setTable() {
