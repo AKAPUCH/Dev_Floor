@@ -24,13 +24,13 @@ final class ListTableViewCell: UITableViewCell {
     
     let postTitle : UILabel = {
        let set = UILabel()
-        set.tintColor = .black
+        set.tintColor = .label
         return set
     }()
     
     let postIntroduction : UILabel = {
         let set = UILabel()
-        set.tintColor = .black
+        set.tintColor = .label
         return set
     }()
     

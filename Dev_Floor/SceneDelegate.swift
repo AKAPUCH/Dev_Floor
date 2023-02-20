@@ -36,7 +36,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tab4.title = "앱 정보"
         tabVC.setViewControllers([tab1,tab2,tab3,tab4], animated: false)
         tabVC.modalPresentationStyle = .fullScreen
-        tabVC.tabBar.backgroundColor = .white
+        tabVC.tabBar.backgroundColor = UIColor.systemBackground
         
         guard let items = tabVC.tabBar.items else {return}
         

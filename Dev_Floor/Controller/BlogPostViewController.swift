@@ -14,7 +14,7 @@ final class BlogPostViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor.systemBackground
         setNavi()
         setTable()
         setConstraints()
@@ -55,7 +55,7 @@ final class BlogPostViewController: UIViewController {
                 navigationBarAppearance.configureWithOpaqueBackground()
                 navigationController?.navigationBar.standardAppearance = navigationBarAppearance
                 navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
-                navigationController?.navigationBar.tintColor = .blue
+        navigationController?.navigationBar.tintColor = .systemBlue
 
                 navigationItem.scrollEdgeAppearance = navigationBarAppearance
                 navigationItem.standardAppearance = navigationBarAppearance
@@ -64,7 +64,7 @@ final class BlogPostViewController: UIViewController {
                 navigationController?.setNeedsStatusBarAppearanceUpdate()
                 
                 navigationController?.navigationBar.isTranslucent = false
-                navigationController?.navigationBar.backgroundColor = .white
+        navigationController?.navigationBar.backgroundColor = .systemBackground
                 title = "목록"
     }
 

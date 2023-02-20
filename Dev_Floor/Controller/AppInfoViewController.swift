@@ -13,7 +13,7 @@ class AppInfoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         setNavi()
         // Do any additional setup after loading the view.
     }
@@ -29,7 +29,7 @@ class AppInfoViewController: UIViewController {
                 navigationBarAppearance.configureWithOpaqueBackground()
                 navigationController?.navigationBar.standardAppearance = navigationBarAppearance
                 navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
-                navigationController?.navigationBar.tintColor = .blue
+                navigationController?.navigationBar.tintColor = .systemBlue
 
                 navigationItem.scrollEdgeAppearance = navigationBarAppearance
                 navigationItem.standardAppearance = navigationBarAppearance
@@ -38,7 +38,7 @@ class AppInfoViewController: UIViewController {
                 navigationController?.setNeedsStatusBarAppearanceUpdate()
                 
                 navigationController?.navigationBar.isTranslucent = false
-                navigationController?.navigationBar.backgroundColor = .white
+                navigationController?.navigationBar.backgroundColor = .systemBackground
                 title = "앱 정보"
     }
     
@@ -48,7 +48,10 @@ class AppInfoViewController: UIViewController {
         buttonView.button3.setTitle("내 블로그 등록하기", for: .normal)
         buttonView.button4.setTitle("도움주신 분들", for: .normal)
         
+        buttonView.button1.setTitleColor(.label, for: .normal)
         buttonView.button2.setTitleColor(.systemBlue, for: .normal)
+        buttonView.button3.setTitleColor(.label, for: .normal)
+        buttonView.button4.setTitleColor(.label, for: .normal)
     }
 
 

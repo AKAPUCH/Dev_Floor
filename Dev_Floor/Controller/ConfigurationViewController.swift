@@ -20,7 +20,7 @@ class ConfigurationViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         setNavi()
         setUI()
         addSwitch()
@@ -53,7 +53,7 @@ class ConfigurationViewController: UIViewController {
                 navigationBarAppearance.configureWithOpaqueBackground()
                 navigationController?.navigationBar.standardAppearance = navigationBarAppearance
                 navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
-                navigationController?.navigationBar.tintColor = .blue
+        navigationController?.navigationBar.tintColor = .systemBlue
 
                 navigationItem.scrollEdgeAppearance = navigationBarAppearance
                 navigationItem.standardAppearance = navigationBarAppearance
@@ -62,15 +62,19 @@ class ConfigurationViewController: UIViewController {
                 navigationController?.setNeedsStatusBarAppearanceUpdate()
                 
                 navigationController?.navigationBar.isTranslucent = false
-                navigationController?.navigationBar.backgroundColor = .white
+        navigationController?.navigationBar.backgroundColor = .systemBackground
                 title = "설정"
     }
     
     func setUI() {
         buttonView.button1.setTitle("목록 설정", for: .normal)
+        buttonView.button1.setTitleColor(.label, for: .normal)
         buttonView.button2.setTitle("위젯 설정", for: .normal)
+        buttonView.button2.setTitleColor(.label, for: .normal)
         buttonView.button3.setTitle("테마 변경", for: .normal)
+        buttonView.button3.setTitleColor(.label, for: .normal)
         buttonView.button4.setTitle("다크 모드", for: .normal)
+        buttonView.button4.setTitleColor(.label, for: .normal)
         self.view.accessibilityIgnoresInvertColors = true
         
         

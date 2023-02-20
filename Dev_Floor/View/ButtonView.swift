@@ -49,7 +49,7 @@ class ButtonView: UIView {
         let button = UIButton()
         button.titleLabel?.font = .boldSystemFont(ofSize: 25.0)
         button.titleLabel?.textAlignment = .center
-        button.setTitleColor(.black, for: .normal)
+        button.setTitleColor(.systemBackground, for: .normal)
         button.layer.borderColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
         button.layer.borderWidth = 1
         button.titleLabel?.adjustsFontSizeToFitWidth = true
