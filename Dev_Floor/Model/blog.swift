@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct blog : Codable {
+struct Blog : Codable {
     var name : String?
     var blog : String?
     var github : String?

@@ -7,10 +7,18 @@
 
 import UIKit
 
-final class BlogPostViewController: UIViewController {
 
+
+final class BlogPostViewController: UIViewController {
+    
     private let tableView = UITableView()
-    var blogs : [blog] = []
+    var tf : Bool = false
+    var blogs : [Blog] = []
+    var items : [Item] = []
+    var categoryBasket : [Category] = []
+    var xmlDictionary : [String : String]?
+    var crtElementType : XMLKey?
+    var parser = XMLParser()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,7 +27,8 @@ final class BlogPostViewController: UIViewController {
         setTable()
         setConstraints()
         getJsonData()
-        // Do any additional setup after loading the view.
+        getNetwork()
+        print(3)
     }
     
     func getJsonData() {
@@ -28,11 +37,21 @@ final class BlogPostViewController: UIViewController {
         guard let dataAsset1 : NSDataAsset = NSDataAsset.init(name: "devBlog" ) else {return}
         
         do{
-            self.blogs = try jsonDecoder.decode([blog].self, from: dataAsset1.data)
+            self.blogs = try jsonDecoder.decode([Blog].self, from: dataAsset1.data)
         }catch {
             print(error.localizedDescription)
         }
 //        print(blogs)
+    }
+    
+    func getNetwork() {
+        blogs = blogs.filter{$0.rss == "https://all-dev-kang.tistory.com/rss"}
+        let url = URL(string: blogs[0].rss!)
+
+            self.parser = XMLParser(contentsOf: url!)!
+            self.parser.delegate = self
+            self.parser.parse()
+        
     }
     
     func setTable() {
@@ -100,3 +119,51 @@ extension BlogPostViewController : UITableViewDataSource {
 extension BlogPostViewController : UITableViewDelegate {
     
 }
+
+extension BlogPostViewController : XMLParserDelegate {
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+        print(elementName)
+        switch elementName {
+        case "item" :   xmlDictionary = [:]
+        case "title" :  crtElementType = .title
+        case "link" :   crtElementType = .link
+        case "description" :    crtElementType = .description
+        case "category" :       crtElementType = .category
+        case "date" : crtElementType = .date
+        default : break
+        }
+    }
+    
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+
+        guard var xmlDictionary, var crtElementType else {return}
+        xmlDictionary.updateValue(string, forKey: crtElementType.rawValue)
+    }
+    
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+
+        guard var xmlDictionary else {return}
+        if elementName == "item" {
+            var item = Item()
+            item.title = xmlDictionary[XMLKey.title.rawValue]
+            item.link = xmlDictionary[XMLKey.link.rawValue]
+            item.description = xmlDictionary[XMLKey.description.rawValue]
+            item.categories = categoryBasket
+            item.date = xmlDictionary[XMLKey.date.rawValue]
+            items.append(item)
+            xmlDictionary.removeAll()
+        }
+        else if elementName == "category" {
+            var categoryObject = Category()
+            guard let categoryName = xmlDictionary[XMLKey.category.rawValue] else {return}
+            categoryObject.category = categoryName
+            categoryBasket.append(categoryObject)
+        }
+        crtElementType = nil
+        
+    }
+    
+    
+}
+
+
