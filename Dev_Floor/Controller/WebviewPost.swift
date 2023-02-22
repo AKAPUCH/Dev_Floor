@@ -18,7 +18,9 @@ class WebviewPost: UIViewController {
     }
     
     override func loadView() {
+        getURL()
         self.view = webView
+        
     }
     
     

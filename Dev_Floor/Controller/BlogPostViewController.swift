@@ -7,18 +7,28 @@
 
 import UIKit
 
-
+class BlogPost {
+    var title = String()
+    var link = String()
+    var contents = String()
+    var category = String()
+    var date = String()
+}
 
 final class BlogPostViewController: UIViewController {
     
     private let tableView = UITableView()
-    var tf : Bool = false
+    private var webView : WebviewPost? = nil
     var blogs : [Blog] = []
-    var items : [Item] = []
-    var categoryBasket : [Category] = []
-    var xmlDictionary : [String : String]?
-    var crtElementType : XMLKey?
+    var blogPosts: [BlogPost] = []
     var parser = XMLParser()
+    
+    var eName = String()
+    var postTitle = String()
+    var postLink = String()
+    var categoryText = String()
+    var contents = String()
+    var postDate = String()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,7 +38,7 @@ final class BlogPostViewController: UIViewController {
         setConstraints()
         getJsonData()
         getNetwork()
-        print(3)
+        
     }
     
     func getJsonData() {
@@ -101,15 +111,16 @@ final class BlogPostViewController: UIViewController {
 
 extension BlogPostViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return blogPosts.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
+        let currentBlogPost : BlogPost = blogPosts[indexPath.row]
         cell.bookmarkStar.image = UIImage(systemName: "star")
-        cell.postTitle.text = "테스트 제목"
-        cell.postIntroduction.text = "테스트 내용은 다음과 같습니다"
+        cell.postTitle.text = currentBlogPost.title
+        cell.postIntroduction.text = currentBlogPost.contents
         return cell
     }
     
@@ -117,50 +128,68 @@ extension BlogPostViewController : UITableViewDataSource {
 }
 
 extension BlogPostViewController : UITableViewDelegate {
-    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        webView = WebviewPost()
+        print(blogPosts[indexPath.row].link)
+        webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link)
+        navigationController?.pushViewController(webView!, animated: true)
+    }
 }
 
 extension BlogPostViewController : XMLParserDelegate {
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-        print(elementName)
-        switch elementName {
-        case "item" :   xmlDictionary = [:]
-        case "title" :  crtElementType = .title
-        case "link" :   crtElementType = .link
-        case "description" :    crtElementType = .description
-        case "category" :       crtElementType = .category
-        case "date" : crtElementType = .date
-        default : break
+        eName = elementName
+        if elementName == "item" {
+            postTitle = String()
+            postLink = String()
+            categoryText = String()
+            postDate = String()
+            contents = String()
+        }
+    }
+    
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+        if elementName == "item" {
+            let blogPost: BlogPost = BlogPost()
+            blogPost.title = postTitle
+            blogPost.link = postLink
+            blogPost.category = categoryText
+            blogPost.contents = contents
+            blogPost.date = postDate
+            blogPosts.append(blogPost)
         }
     }
     
     func parser(_ parser: XMLParser, foundCharacters string: String) {
-
-        guard var xmlDictionary, var crtElementType else {return}
-        xmlDictionary.updateValue(string, forKey: crtElementType.rawValue)
+        let data = string.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
+        //let data = string.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+        
+        if (!data.isEmpty) {
+            if eName == "title" {
+                postTitle += data
+            } else if eName == "link" {
+                postLink += data
+            } else if eName == "category" {
+                categoryText += data + "/"
+            } else if eName == "pubDate" {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "EEE, dd LLL yyyy HH:mm:ss zzz"
+                dateFormatter.timeZone = TimeZone(identifier: TimeZone.current.identifier)
+                let formattedDate = dateFormatter.date(from: data)
+                if formattedDate != nil {
+                    dateFormatter.dateStyle = .medium
+                    dateFormatter.timeStyle = .none
+                    postDate = dateFormatter.string(from: formattedDate!)
+                }
+            } else if eName == "description" {
+                contents += data
+            }
+        }
+        
     }
     
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-
-        guard var xmlDictionary else {return}
-        if elementName == "item" {
-            var item = Item()
-            item.title = xmlDictionary[XMLKey.title.rawValue]
-            item.link = xmlDictionary[XMLKey.link.rawValue]
-            item.description = xmlDictionary[XMLKey.description.rawValue]
-            item.categories = categoryBasket
-            item.date = xmlDictionary[XMLKey.date.rawValue]
-            items.append(item)
-            xmlDictionary.removeAll()
-        }
-        else if elementName == "category" {
-            var categoryObject = Category()
-            guard let categoryName = xmlDictionary[XMLKey.category.rawValue] else {return}
-            categoryObject.category = categoryName
-            categoryBasket.append(categoryObject)
-        }
-        crtElementType = nil
-        
+    func parserDidEndDocument(_ parser: XMLParser) {
+        self.tableView.reloadData()
     }
     
     
