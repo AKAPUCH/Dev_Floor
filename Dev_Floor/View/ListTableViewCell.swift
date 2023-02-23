@@ -8,26 +8,34 @@
 import UIKit
 import SnapKit
 final class ListTableViewCell: UITableViewCell {
-
     
-    lazy var profileImage : UIImageView = {
-       let set = UIImageView()
-        set.image = UIImage(systemName: "face.smiling")
-        return set
-    }()
     
     lazy var bookmarkStar : UIImageView = {
-       let set = UIImageView()
-        
+        let set = UIImageView()
+        set.contentMode = .scaleAspectFit //비율 유지
         return set
     }()
     
-    let postTitle : UILabel = {
-       let set = UILabel()
-        set.tintColor = .label
-        set.numberOfLines = 1
-        return set
-    }()
+        let postTitle : UILabel = {
+           let set = UILabel()
+            set.tintColor = .label
+            set.numberOfLines = 2
+            set.adjustsFontSizeToFitWidth = true
+            set.textAlignment = .left
+            return set
+        }()
+    
+//    let postTitle : UITextView  = {
+//        let set = UITextView()
+//        set.isEditable = false
+//        set.textContainer.maximumNumberOfLines = 2
+//        set.adjustsFontForContentSizeCategory = true
+//        set.font = .systemFont(ofSize: 18)
+//        set.sizeToFit()
+//        set.isScrollEnabled = false
+//
+//        return set
+//    }()
     
     let postIntroduction : UILabel = {
         let set = UILabel()
@@ -41,7 +49,7 @@ final class ListTableViewCell: UITableViewCell {
         set.axis = .vertical
         set.alignment = .fill
         set.distribution = .fill
-        set.spacing = 5
+        
         return set
     }()
     
@@ -55,34 +63,29 @@ final class ListTableViewCell: UITableViewCell {
     }
     
     func setUI() {
-        [profileImage,stack,bookmarkStar].forEach {self.addSubview($0)}
-        profileImage.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.height.equalToSuperview()
-            make.width.equalTo(self.snp.height)
-        }
+        [stack,bookmarkStar].forEach {self.addSubview($0)}
         stack.snp.makeConstraints { make in
-            make.height.centerY.equalToSuperview()
-            make.leading.equalTo(profileImage.snp.trailing).offset(10)
+            make.leading.height.equalToSuperview()
+            make.trailing.equalToSuperview().offset(-30)
         }
         bookmarkStar.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
-            make.height.width.lessThanOrEqualTo(profileImage)
+            make.width.equalTo(20)
             make.trailing.equalToSuperview().offset(-10)
         }
         
     }
     
     
-//    override func awakeFromNib() {
-//        super.awakeFromNib()
-//        // Initialization code
-//    }
-//
-//    override func setSelected(_ selected: Bool, animated: Bool) {
-//        super.setSelected(selected, animated: animated)
-//
-//        // Configure the view for the selected state
-//    }
-
+    //    override func awakeFromNib() {
+    //        super.awakeFromNib()
+    //        // Initialization code
+    //    }
+    //
+    //    override func setSelected(_ selected: Bool, animated: Bool) {
+    //        super.setSelected(selected, animated: animated)
+    //
+    //        // Configure the view for the selected state
+    //    }
+    
 }

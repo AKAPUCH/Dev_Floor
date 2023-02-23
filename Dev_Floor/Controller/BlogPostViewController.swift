@@ -38,7 +38,6 @@ final class BlogPostViewController: UIViewController {
         setConstraints()
         getJsonData()
         getNetwork()
-        
     }
     
     func getJsonData() {
@@ -55,13 +54,17 @@ final class BlogPostViewController: UIViewController {
     }
     
     func getNetwork() {
-        blogs = blogs.filter{$0.rss == "https://all-dev-kang.tistory.com/rss"}
+        blogs = blogs.filter{$0.rss == "https://bob-full.tistory.com/rss"}
         let url = URL(string: blogs[0].rss!)
-
-            self.parser = XMLParser(contentsOf: url!)!
-            self.parser.delegate = self
-            self.parser.parse()
+        self.parser.delegate = self
         
+        DispatchQueue.global(qos: .background).async {
+            if let parser = XMLParser(contentsOf: url!) {
+                parser.parse()
+            } else {
+                print("Failed to initialize XMLParser with contents of URL: \(url!)")
+            }
+        }
     }
     
     func setTable() {
@@ -120,7 +123,8 @@ extension BlogPostViewController : UITableViewDataSource {
         let currentBlogPost : BlogPost = blogPosts[indexPath.row]
         cell.bookmarkStar.image = UIImage(systemName: "star")
         cell.postTitle.text = currentBlogPost.title
-        cell.postIntroduction.text = currentBlogPost.contents
+        cell.postIntroduction.text = currentBlogPost.date + "\n" + currentBlogPost.category
+        print(currentBlogPost.date)
         return cell
     }
     
@@ -170,16 +174,17 @@ extension BlogPostViewController : XMLParserDelegate {
             } else if eName == "link" {
                 postLink += data
             } else if eName == "category" {
-                categoryText += data + "/"
+                categoryText += data + " "
             } else if eName == "pubDate" {
                 let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "EEE, dd LLL yyyy HH:mm:ss zzz"
-                dateFormatter.timeZone = TimeZone(identifier: TimeZone.current.identifier)
-                let formattedDate = dateFormatter.date(from: data)
-                if formattedDate != nil {
-                    dateFormatter.dateStyle = .medium
-                    dateFormatter.timeStyle = .none
-                    postDate = dateFormatter.string(from: formattedDate!)
+                dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                dateFormatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+                if let date = dateFormatter.date(from: data) {
+                    dateFormatter.dateFormat = "yyyy년 M월 d일"
+                    let formattedDate = dateFormatter.string(from: date)
+                    postDate = formattedDate
+                } else {
+                    print("Unable to parse date")
                 }
             } else if eName == "description" {
                 contents += data
