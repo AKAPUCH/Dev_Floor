@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		6E4852CB29A26F8E00B9B861 /* blog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4852CA29A26F8E00B9B861 /* blog.swift */; };
 		6E4F5D1129A3D59F0093D50B /* WebviewPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4F5D1029A3D59E0093D50B /* WebviewPost.swift */; };
-		6E72829229A4E91700243AEB /* post.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E72829129A4E91700243AEB /* post.swift */; };
 		6E9E437D29A21EA300C25AD2 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 6E9E437C29A21EA300C25AD2 /* Yams */; };
 		6E9E438229A2359E00C25AD2 /* Yaml in Frameworks */ = {isa = PBXBuildFile; productRef = 6E9E438129A2359E00C25AD2 /* Yaml */; };
 		6EDA6768299E64770071C5D6 /* ButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA6767299E64770071C5D6 /* ButtonView.swift */; };
@@ -31,7 +30,6 @@
 /* Begin PBXFileReference section */
 		6E4852CA29A26F8E00B9B861 /* blog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = blog.swift; sourceTree = "<group>"; };
 		6E4F5D1029A3D59E0093D50B /* WebviewPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebviewPost.swift; sourceTree = "<group>"; };
-		6E72829129A4E91700243AEB /* post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = post.swift; sourceTree = "<group>"; };
 		6EDA6767299E64770071C5D6 /* ButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonView.swift; sourceTree = "<group>"; };
 		6EDA6769299E64ED0071C5D6 /* ListTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListTableViewCell.swift; sourceTree = "<group>"; };
 		6EF21630299BBFAB0036DE39 /* Dev_Floor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dev_Floor.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,7 +84,6 @@
 			children = (
 				6EF2163C299BBFAB0036DE39 /* Dev_Floor.xcdatamodeld */,
 				6E4852CA29A26F8E00B9B861 /* blog.swift */,
-				6E72829129A4E91700243AEB /* post.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -220,7 +217,6 @@
 				6EF21652299BDEE80036DE39 /* BlogPostViewController.swift in Sources */,
 				6EF21634299BBFAB0036DE39 /* AppDelegate.swift in Sources */,
 				6EDA6768299E64770071C5D6 /* ButtonView.swift in Sources */,
-				6E72829229A4E91700243AEB /* post.swift in Sources */,
 				6EF2163E299BBFAB0036DE39 /* Dev_Floor.xcdatamodeld in Sources */,
 				6EF21636299BBFAB0036DE39 /* SceneDelegate.swift in Sources */,
 				6EDA676A299E64ED0071C5D6 /* ListTableViewCell.swift in Sources */,

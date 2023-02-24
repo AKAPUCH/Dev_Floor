@@ -19,3 +19,11 @@ struct Blog : Codable {
 //    "description": "편리함을 추구하는 개발자의 지식 블로그",
 //    "rss": "https://all-dev-kang.tistory.com/rss"
 }
+
+class BlogPost {
+    var title = String()
+    var link = String()
+    var contents = String()
+    var category = String()
+    var date = String()
+}

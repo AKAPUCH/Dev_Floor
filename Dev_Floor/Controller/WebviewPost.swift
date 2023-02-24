@@ -32,6 +32,25 @@ class WebviewPost: UIViewController {
         webView.sizeToFit()
     }
     
+//    func getURL() {
+//        guard let blogPostURL = blogPostURL else {return}
+//        let task = URLSession.shared.dataTask(with: blogPostURL) { [weak self] (data, response, error) in
+//            guard let self = self else { return }
+//            if let error = error {
+//                print("Error loading URL: \(error.localizedDescription)")
+//                return
+//            }
+//            if let data = data, let htmlString = String(data: data, encoding: .utf8) {
+//                DispatchQueue.main.async { [weak self] in
+//                    guard let self = self else { return }
+//                    self.webView.loadHTMLString(htmlString, baseURL: blogPostURL)
+//                    self.webView.sizeToFit()
+//                }
+//            }
+//        }
+//        task.resume()
+//    }
+    
     
 }
 

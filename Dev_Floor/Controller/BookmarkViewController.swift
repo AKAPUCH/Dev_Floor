@@ -11,6 +11,7 @@ final class BookmarkViewController: UIViewController {
 
     private let tableView = UITableView()
     
+    var thing = BlogPost()
     
     override func viewDidLoad() {
         super.viewDidLoad()

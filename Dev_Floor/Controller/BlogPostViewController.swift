@@ -7,13 +7,7 @@
 
 import UIKit
 
-class BlogPost {
-    var title = String()
-    var link = String()
-    var contents = String()
-    var category = String()
-    var date = String()
-}
+
 
 final class BlogPostViewController: UIViewController {
     
@@ -22,6 +16,7 @@ final class BlogPostViewController: UIViewController {
     var blogs : [Blog] = []
     var blogPosts: [BlogPost] = []
     var parser = XMLParser()
+    var includetext : String = ""
     
     var eName = String()
     var postTitle = String()
@@ -30,14 +25,25 @@ final class BlogPostViewController: UIViewController {
     var contents = String()
     var postDate = String()
     
+    var searchBar : UISearchBar = {
+        let set = UISearchBar()
+        set.spellCheckingType = .no
+        set.autocorrectionType = .no
+        set.autocapitalizationType = .none
+        set.barStyle = .default
+        return set
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackground
+        searchBar.delegate = self
         setNavi()
         setTable()
         setConstraints()
         getJsonData()
-        getNetwork()
+        getNetwork(blogs)
+        
     }
     
     func getJsonData() {
@@ -50,20 +56,31 @@ final class BlogPostViewController: UIViewController {
         }catch {
             print(error.localizedDescription)
         }
+        blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory")} //"https://all-dev-kang.tistory.com/rss"
 //        print(blogs)
     }
-    
-    func getNetwork() {
-        blogs = blogs.filter{$0.rss == "https://bob-full.tistory.com/rss"}
-        let url = URL(string: blogs[0].rss!)
-        self.parser.delegate = self
-        
-        DispatchQueue.global(qos: .background).async {
-            if let parser = XMLParser(contentsOf: url!) {
+
+    func getNetwork(_ content : [Blog]) {
+        for i in content{
+            guard let url = URL(string: i.rss!) else { return }
+            let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+                guard let self = self else { return }
+                if let error = error {
+                    print("Error fetching data: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let data = data else {
+                    print("No data returned from server")
+                    return
+                }
+                
+                let parser = XMLParser(data: data)
+                parser.delegate = self
                 parser.parse()
-            } else {
-                print("Failed to initialize XMLParser with contents of URL: \(url!)")
             }
+            
+            task.resume()
         }
     }
     
@@ -76,8 +93,14 @@ final class BlogPostViewController: UIViewController {
     
     func setConstraints() {
         view.addSubview(tableView)
+        view.addSubview(searchBar)
         tableView.snp.makeConstraints { make in
-            make.edges.equalTo(self.view.safeAreaLayoutGuide)
+            make.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
+            make.top.equalTo(self.view.safeAreaLayoutGuide).offset(50)
+        }
+        searchBar.snp.makeConstraints { make in
+            make.top.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
+            make.bottom.equalTo(self.tableView.snp.top)
         }
     }
     
@@ -100,45 +123,56 @@ final class BlogPostViewController: UIViewController {
                 title = "목록"
     }
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+    
 }
+
+extension BlogPostViewController : UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // Filter your array based on the search text
+        blogPosts.removeAll()
+        includetext = searchText
+        getNetwork(blogs)
+    }
+    
+//    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+//        // Clear the search bar text and dismiss the keyboard
+//        searchBar.text = ""
+//        searchBar.resignFirstResponder()
+//    }
+    
+    
+}
+
 
 extension BlogPostViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print(blogPosts.count)
         return blogPosts.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
+        if blogPosts.isEmpty {return cell}
         let currentBlogPost : BlogPost = blogPosts[indexPath.row]
         cell.bookmarkStar.image = UIImage(systemName: "star")
         cell.postTitle.text = currentBlogPost.title
         cell.postIntroduction.text = currentBlogPost.date + "\n" + currentBlogPost.category
-        print(currentBlogPost.date)
         return cell
     }
     
     
 }
 
+
 extension BlogPostViewController : UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         webView = WebviewPost()
-        print(blogPosts[indexPath.row].link)
         webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link)
         navigationController?.pushViewController(webView!, animated: true)
     }
 }
+
+
 
 extension BlogPostViewController : XMLParserDelegate {
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
@@ -154,6 +188,9 @@ extension BlogPostViewController : XMLParserDelegate {
     
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         if elementName == "item" {
+            if includetext != ""{
+                guard categoryText.contains(includetext) else {return}
+            }
             let blogPost: BlogPost = BlogPost()
             blogPost.title = postTitle
             blogPost.link = postLink
@@ -194,7 +231,9 @@ extension BlogPostViewController : XMLParserDelegate {
     }
     
     func parserDidEndDocument(_ parser: XMLParser) {
-        self.tableView.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            self!.tableView.reloadData()
+        }
     }
     
     
