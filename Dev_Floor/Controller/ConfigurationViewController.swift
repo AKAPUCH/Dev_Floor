@@ -32,12 +32,6 @@ class ConfigurationViewController: UIViewController {
         self.view = buttonView
     }
     
-//    func swipeRecognizer() {
-//        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(self.respondToSwipeGesture(_:)))
-////        swipeRight.direction = UISwipeGestureRecognizer.Direction.right
-//        self.view.addGestureRecognizer(swipeRight)
-//
-//    }
     
     func addSwitch() {
         buttonView.button4.addSubview(darkmodeSwitch)
