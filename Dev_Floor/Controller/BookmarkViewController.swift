@@ -75,7 +75,7 @@ extension BookmarkViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
-        cell.bookmarkStar.image = UIImage(systemName: "star")
+        cell.bookmarkStar.image = UIImage(systemName: "star.fill")
         cell.postTitle.text = "테스트 제목"
         cell.postIntroduction.text = "테스트 내용은 다음과 같습니다"
         return cell
@@ -85,5 +85,5 @@ extension BookmarkViewController : UITableViewDataSource {
 }
 
 extension BookmarkViewController : UITableViewDelegate {
-    
+
 }

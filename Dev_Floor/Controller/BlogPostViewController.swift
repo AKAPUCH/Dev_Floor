@@ -56,10 +56,10 @@ final class BlogPostViewController: UIViewController {
         }catch {
             print(error.localizedDescription)
         }
-        blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory")} //"https://all-dev-kang.tistory.com/rss"
-//        print(blogs)
+        blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory") && $0.rss != "http://hongji3354.tistory.com/rss"}
+        //       print(blogs)
     }
-
+    
     func getNetwork(_ content : [Blog]) {
         for i in content{
             guard let url = URL(string: i.rss!) else { return }
@@ -107,22 +107,22 @@ final class BlogPostViewController: UIViewController {
     func setNavi() {
         
         let navigationBarAppearance = UINavigationBarAppearance()
-                navigationBarAppearance.configureWithOpaqueBackground()
-                navigationController?.navigationBar.standardAppearance = navigationBarAppearance
-                navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
+        navigationBarAppearance.configureWithOpaqueBackground()
+        navigationController?.navigationBar.standardAppearance = navigationBarAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         navigationController?.navigationBar.tintColor = .systemBlue
-
-                navigationItem.scrollEdgeAppearance = navigationBarAppearance
-                navigationItem.standardAppearance = navigationBarAppearance
-                navigationItem.compactAppearance = navigationBarAppearance
-
-                navigationController?.setNeedsStatusBarAppearanceUpdate()
-                
-                navigationController?.navigationBar.isTranslucent = false
+        
+        navigationItem.scrollEdgeAppearance = navigationBarAppearance
+        navigationItem.standardAppearance = navigationBarAppearance
+        navigationItem.compactAppearance = navigationBarAppearance
+        
+        navigationController?.setNeedsStatusBarAppearanceUpdate()
+        
+        navigationController?.navigationBar.isTranslucent = false
         navigationController?.navigationBar.backgroundColor = .systemBackground
-                title = "목록"
+        title = "목록"
     }
-
+    
     
 }
 
@@ -134,11 +134,11 @@ extension BlogPostViewController : UISearchBarDelegate {
         getNetwork(blogs)
     }
     
-//    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-//        // Clear the search bar text and dismiss the keyboard
-//        searchBar.text = ""
-//        searchBar.resignFirstResponder()
-//    }
+    //    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+    //        // Clear the search bar text and dismiss the keyboard
+    //        searchBar.text = ""
+    //        searchBar.resignFirstResponder()
+    //    }
     
     
 }
@@ -146,7 +146,6 @@ extension BlogPostViewController : UISearchBarDelegate {
 
 extension BlogPostViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print(blogPosts.count)
         return blogPosts.count
     }
     
@@ -154,22 +153,42 @@ extension BlogPostViewController : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
         if blogPosts.isEmpty {return cell}
         let currentBlogPost : BlogPost = blogPosts[indexPath.row]
-        cell.bookmarkStar.image = UIImage(systemName: "star")
         cell.postTitle.text = currentBlogPost.title
         cell.postIntroduction.text = currentBlogPost.date + "\n" + currentBlogPost.category
         return cell
     }
     
     
+    
+    
 }
 
 
 extension BlogPostViewController : UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        webView = WebviewPost()
-        webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link)
-        navigationController?.pushViewController(webView!, animated: true)
+        guard let cell = tableView.cellForRow(at: indexPath) as? ListTableViewCell else { return }
+        
+        let tapLocation = tableView.panGestureRecognizer.location(in: cell)
+        if let accessoryView = cell.accessoryView,
+           accessoryView.frame.contains(tapLocation) {
+            // Accessory view was selected
+            // Do something...
+            switch cell.bookmarkStar.image {
+            case UIImage(systemName: "star") : cell.bookmarkStar.image = UIImage(systemName: "star.fill")
+            case UIImage(systemName: "star.fill") : cell.bookmarkStar.image = UIImage(systemName: "star")
+            default : break
+            }
+        } else {
+            // Stack view was selected
+            print("Stack view was selected")
+            // Do something...
+            webView = WebviewPost()
+            webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link)
+            navigationController?.pushViewController(webView!, animated: true)
+        }
     }
+    
 }
 
 
