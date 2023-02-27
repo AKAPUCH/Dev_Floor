@@ -26,7 +26,7 @@
   - [x] RSS 이용 네트워킹 및 XML 파싱 후 테이블 뷰 연동
   - [x] [상단 포스팅 카테고리 기준으로 데이터를 필터링할 수 있는 검색 바 구현](https://github.com/AKAPUCH/Dev_Floor/issues/1)
   - [x] 테이블 row 클릭시 해당 블로그 모바일 브라우저로 열기
-  - [ ] 무색 별 클릭시 즐겨찾기에 등록 및 색이 있는 별로 변경 
+  - [x] [무색 별 클릭시 즐겨찾기에 등록 및 색이 있는 별로 변경](https://github.com/AKAPUCH/Dev_Floor/issues/2)
   
 </details>
 <details><summary>화면 2</summary>
