@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData
 
 
 
@@ -15,9 +16,10 @@ final class BlogPostViewController: UIViewController {
     private var webView : WebviewPost? = nil
     var blogs : [Blog] = []
     var blogPosts: [BlogPost] = []
+    var checkposts : [BookmarkedPost] = []
     var parser = XMLParser()
     var includetext : String = ""
-    
+    var container : NSPersistentContainer!
     var eName = String()
     var postTitle = String()
     var postLink = String()
@@ -37,15 +39,70 @@ final class BlogPostViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackground
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadTableViewData), name: NSNotification.Name(rawValue: "ReloadTableViewData2"), object: nil)
         searchBar.delegate = self
         setNavi()
         setTable()
         setConstraints()
         getJsonData()
         getNetwork(blogs)
+        getContainer()
         
     }
     
+    // MARK: - 코어 데이터 관련
+    func getContainer() {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        self.container = appDelegate.persistentContainer
+        selectData()
+    }
+    
+    func createBookmark(_ currentPost : BlogPost) {
+        guard let entity = NSEntityDescription.entity(forEntityName: "BookmarkedPost", in: self.container.viewContext) else {return}
+        let savedObject = NSManagedObject(entity: entity, insertInto: self.container.viewContext)
+        savedObject.setValue(currentPost.title, forKey: "title")
+        savedObject.setValue(currentPost.link, forKey: "link")
+        savedObject.setValue(currentPost.category, forKey: "category")
+        savedObject.setValue(currentPost.contents, forKey: "contents")
+        savedObject.setValue(currentPost.date, forKey: "date")
+        do {
+            try self.container.viewContext.save()
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func selectData() {
+        do{
+            let contact = try self.container.viewContext.fetch(BookmarkedPost.fetchRequest())
+            //배열형태로 불러온 데이터
+            checkposts = contact
+        }catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func deleteBookmark(_ currentPost : BlogPost) {
+        
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest.init(entityName: "BookmarkedPost")
+        fetchRequest.predicate = NSPredicate(format: "link = %@", currentPost.link ?? "www.naver.com")
+        
+        do {
+            let test = try self.container.viewContext.fetch(fetchRequest)
+            let objectToDelete = test[0] as! NSManagedObject
+            self.container.viewContext.delete(objectToDelete)
+            do {
+                try self.container.viewContext.save()
+            } catch {
+                print(error.localizedDescription)
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    
+    // MARK: - dataAsset JSON파일 파싱
     func getJsonData() {
         let jsonDecoder : JSONDecoder = JSONDecoder()
         
@@ -57,9 +114,11 @@ final class BlogPostViewController: UIViewController {
             print(error.localizedDescription)
         }
         blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory") && $0.rss != "http://hongji3354.tistory.com/rss"}
-        //       print(blogs)
+        
     }
     
+    
+    // MARK: - XML파싱
     func getNetwork(_ content : [Blog]) {
         for i in content{
             guard let url = URL(string: i.rss!) else { return }
@@ -84,6 +143,8 @@ final class BlogPostViewController: UIViewController {
         }
     }
     
+    
+    // MARK: - UI관련
     func setTable() {
         tableView.delegate = self
         tableView.dataSource = self
@@ -123,6 +184,11 @@ final class BlogPostViewController: UIViewController {
         title = "목록"
     }
     
+    @objc func reloadTableViewData() {
+        selectData()
+        tableView.reloadData()
+    }
+    
     
 }
 
@@ -153,8 +219,11 @@ extension BlogPostViewController : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
         if blogPosts.isEmpty {return cell}
         let currentBlogPost : BlogPost = blogPosts[indexPath.row]
+        if checkposts.filter({$0.title == currentBlogPost.title}).count != 0 {
+            cell.bookmarkStar.image = UIImage(systemName: "star.fill")
+        }
         cell.postTitle.text = currentBlogPost.title
-        cell.postIntroduction.text = currentBlogPost.date + "\n" + currentBlogPost.category
+        cell.postIntroduction.text = (currentBlogPost.date ?? "날짜없음") + "\n" + (currentBlogPost.category ?? "카테고리없음" )
         return cell
     }
     
@@ -168,15 +237,22 @@ extension BlogPostViewController : UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let cell = tableView.cellForRow(at: indexPath) as? ListTableViewCell else { return }
-        
+        let currentBlogPost : BlogPost = blogPosts[indexPath.row]
         let tapLocation = tableView.panGestureRecognizer.location(in: cell)
         if let accessoryView = cell.accessoryView,
            accessoryView.frame.contains(tapLocation) {
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ReloadTableViewData1"), object: nil)
             // Accessory view was selected
             // Do something...
             switch cell.bookmarkStar.image {
-            case UIImage(systemName: "star") : cell.bookmarkStar.image = UIImage(systemName: "star.fill")
-            case UIImage(systemName: "star.fill") : cell.bookmarkStar.image = UIImage(systemName: "star")
+            case UIImage(systemName: "star") :
+                cell.bookmarkStar.image = UIImage(systemName: "star.fill")
+                createBookmark(currentBlogPost)
+                selectData()
+            case UIImage(systemName: "star.fill") :
+                cell.bookmarkStar.image = UIImage(systemName: "star")
+                deleteBookmark(currentBlogPost)
+                
             default : break
             }
         } else {
@@ -184,7 +260,7 @@ extension BlogPostViewController : UITableViewDelegate {
             print("Stack view was selected")
             // Do something...
             webView = WebviewPost()
-            webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link)
+            webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link ?? "www.naver.com")
             navigationController?.pushViewController(webView!, animated: true)
         }
     }
