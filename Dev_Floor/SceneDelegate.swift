@@ -28,13 +28,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let tab1 = UINavigationController(rootViewController: BlogPostViewController())
         let tab2 = UINavigationController(rootViewController:BookmarkViewController())
         let tab3 = UINavigationController(rootViewController:ConfigurationViewController())
-        let tab4 = UINavigationController(rootViewController:AppInfoViewController())
         
         tab1.title = "목록"
         tab2.title = "즐겨찾기"
         tab3.title = "설정"
-        tab4.title = "앱 정보"
-        tabVC.setViewControllers([tab1,tab2,tab3,tab4], animated: false)
+        tabVC.setViewControllers([tab1,tab2,tab3], animated: false)
         tabVC.modalPresentationStyle = .fullScreen
         tabVC.tabBar.backgroundColor = UIColor.systemBackground
         
@@ -43,7 +41,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         items[0].image = UIImage(systemName: "list.star")
         items[1].image = UIImage(systemName: "list.bullet.circle")
         items[2].image = UIImage(systemName: "gearshape.fill")
-        items[3].image = UIImage(systemName: "ellipsis")
         window?.rootViewController = tabVC
         window?.makeKeyAndVisible()
     }

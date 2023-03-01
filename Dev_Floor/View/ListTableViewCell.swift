@@ -9,10 +9,12 @@ import UIKit
 import SnapKit
 final class ListTableViewCell: UITableViewCell {
     
+    let customAccessoryView = UIView()
     
     lazy var bookmarkStar : UIImageView = {
         let set = UIImageView()
         set.contentMode = .scaleAspectFit //비율 유지
+        set.image = UIImage(systemName: "star")
         return set
     }()
     
@@ -56,6 +58,7 @@ final class ListTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?){
         super.init(style: .default, reuseIdentifier: reuseIdentifier)
         setUI()
+        self.accessoryView = customAccessoryView
     }
     
     required init?(coder: NSCoder) {
@@ -63,31 +66,27 @@ final class ListTableViewCell: UITableViewCell {
     }
     
     func setUI() {
-        [stack,bookmarkStar].forEach {self.addSubview($0)}
+        [stack, customAccessoryView].forEach {self.addSubview($0)}
+        customAccessoryView.addSubview(bookmarkStar)
         stack.snp.makeConstraints { make in
             make.leading.height.equalToSuperview()
-            make.trailing.equalToSuperview().offset(-30)
+            make.trailing.equalToSuperview().offset(-54)
         }
-        bookmarkStar.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.width.equalTo(20)
+        customAccessoryView.snp.makeConstraints { make in
+            make.height.equalToSuperview()
+            make.width.equalTo(44)
             make.trailing.equalToSuperview().offset(-10)
         }
-        
+        bookmarkStar.snp.makeConstraints { make in
+            make.edges.equalTo(customAccessoryView.snp.edges)
+        }
+
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
     }
     
 
-    
-    
-    //    override func awakeFromNib() {
-    //        super.awakeFromNib()
-    //        // Initialization code
-    //    }
-    //
-    //    override func setSelected(_ selected: Bool, animated: Bool) {
-    //        super.setSelected(selected, animated: animated)
-    //
-    //        // Configure the view for the selected state
-    //    }
     
 }

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData
 
 
 
@@ -15,9 +16,10 @@ final class BlogPostViewController: UIViewController {
     private var webView : WebviewPost? = nil
     var blogs : [Blog] = []
     var blogPosts: [BlogPost] = []
+    var checkposts : [BookmarkedPost] = []
     var parser = XMLParser()
     var includetext : String = ""
-    
+    var container : NSPersistentContainer!
     var eName = String()
     var postTitle = String()
     var postLink = String()
@@ -34,6 +36,14 @@ final class BlogPostViewController: UIViewController {
         return set
     }()
     
+    lazy var searchResult : UILabel = {
+        let set = UILabel()
+        set.text = "\(self.blogPosts.count)건이 검색되었습니다."
+        set.textColor = .clear
+        
+        return set
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackground
@@ -42,10 +52,68 @@ final class BlogPostViewController: UIViewController {
         setTable()
         setConstraints()
         getJsonData()
-        getNetwork(blogs)
+        getNetwork(blogs) {
+            DispatchQueue.main.async { [weak self] in
+                self!.tableView.reloadData()
+            }
+        }
+        getContainer()
         
     }
     
+    // MARK: - 코어 데이터 관련
+    func getContainer() {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        self.container = appDelegate.persistentContainer
+        selectData()
+    }
+    
+    func createBookmark(_ currentPost : BlogPost) {
+        guard let entity = NSEntityDescription.entity(forEntityName: "BookmarkedPost", in: self.container.viewContext) else {return}
+        let savedObject = NSManagedObject(entity: entity, insertInto: self.container.viewContext)
+        savedObject.setValue(currentPost.title, forKey: "title")
+        savedObject.setValue(currentPost.link, forKey: "link")
+        savedObject.setValue(currentPost.category, forKey: "category")
+        savedObject.setValue(currentPost.contents, forKey: "contents")
+        savedObject.setValue(currentPost.date, forKey: "date")
+        do {
+            try self.container.viewContext.save()
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func selectData() {
+        do{
+            let contact = try self.container.viewContext.fetch(BookmarkedPost.fetchRequest())
+            //배열형태로 불러온 데이터
+            checkposts = contact
+        }catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func deleteBookmark(_ currentPost : BlogPost) {
+        
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest.init(entityName: "BookmarkedPost")
+        fetchRequest.predicate = NSPredicate(format: "link = %@", currentPost.link ?? "www.naver.com")
+        
+        do {
+            let test = try self.container.viewContext.fetch(fetchRequest)
+            let objectToDelete = test[0] as! NSManagedObject
+            self.container.viewContext.delete(objectToDelete)
+            do {
+                try self.container.viewContext.save()
+            } catch {
+                print(error.localizedDescription)
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    
+    // MARK: - dataAsset JSON파일 파싱
     func getJsonData() {
         let jsonDecoder : JSONDecoder = JSONDecoder()
         
@@ -56,11 +124,13 @@ final class BlogPostViewController: UIViewController {
         }catch {
             print(error.localizedDescription)
         }
-        blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory")} //"https://all-dev-kang.tistory.com/rss"
-//        print(blogs)
+        blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory") && $0.rss != "http://hongji3354.tistory.com/rss"}
+        
     }
-
-    func getNetwork(_ content : [Blog]) {
+    
+    
+    // MARK: - XML파싱
+    func getNetwork(_ content : [Blog], completion : @escaping () -> Void) {
         for i in content{
             guard let url = URL(string: i.rss!) else { return }
             let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
@@ -78,12 +148,15 @@ final class BlogPostViewController: UIViewController {
                 let parser = XMLParser(data: data)
                 parser.delegate = self
                 parser.parse()
+                completion()
             }
             
             task.resume()
         }
     }
     
+    
+    // MARK: - UI관련
     func setTable() {
         tableView.delegate = self
         tableView.dataSource = self
@@ -94,12 +167,18 @@ final class BlogPostViewController: UIViewController {
     func setConstraints() {
         view.addSubview(tableView)
         view.addSubview(searchBar)
+        view.addSubview(searchResult)
         tableView.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
-            make.top.equalTo(self.view.safeAreaLayoutGuide).offset(50)
+            make.top.equalTo(self.view.safeAreaLayoutGuide).offset(80)
         }
         searchBar.snp.makeConstraints { make in
             make.top.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
+            make.bottom.equalTo(self.tableView.snp.top).offset(-30)
+        }
+        searchResult.snp.makeConstraints { make in
+            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
+            make.top.equalTo(self.searchBar.snp.bottom)
             make.bottom.equalTo(self.tableView.snp.top)
         }
     }
@@ -107,38 +186,67 @@ final class BlogPostViewController: UIViewController {
     func setNavi() {
         
         let navigationBarAppearance = UINavigationBarAppearance()
-                navigationBarAppearance.configureWithOpaqueBackground()
-                navigationController?.navigationBar.standardAppearance = navigationBarAppearance
-                navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
+        navigationBarAppearance.configureWithOpaqueBackground()
+        navigationController?.navigationBar.standardAppearance = navigationBarAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         navigationController?.navigationBar.tintColor = .systemBlue
-
-                navigationItem.scrollEdgeAppearance = navigationBarAppearance
-                navigationItem.standardAppearance = navigationBarAppearance
-                navigationItem.compactAppearance = navigationBarAppearance
-
-                navigationController?.setNeedsStatusBarAppearanceUpdate()
-                
-                navigationController?.navigationBar.isTranslucent = false
+        
+        navigationItem.scrollEdgeAppearance = navigationBarAppearance
+        navigationItem.standardAppearance = navigationBarAppearance
+        navigationItem.compactAppearance = navigationBarAppearance
+        
+        navigationController?.setNeedsStatusBarAppearanceUpdate()
+        
+        navigationController?.navigationBar.isTranslucent = false
         navigationController?.navigationBar.backgroundColor = .systemBackground
-                title = "목록"
+        title = "목록"
     }
 
+    
     
 }
 
+//extension BlogPostViewController : UIScrollViewDelegate {
+//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        let contentOffset_y = scrollView.contentOffset.y
+//        let tableViewContentSize = self.tableView.contentSize.height
+//        let pagination_y = tableViewContentSize * 0.2
+//
+//        if contentOffset_y > tableViewContentSize - pagination_y {
+//
+//        }
+//    }
+//}
+
 extension BlogPostViewController : UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        // Filter your array based on the search text
-        blogPosts.removeAll()
-        includetext = searchText
-        getNetwork(blogs)
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        // Filter your array based on the search text
+//
+//        includetext = searchText
+//
+//    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        if let searchText = searchBar.text {
+            includetext = searchText
+            blogPosts.removeAll()
+            getNetwork(blogs) {
+                DispatchQueue.main.async { [weak self] in
+                    self!.tableView.reloadData()
+                    self!.searchResult.text = "\(self!.blogPosts.count)건이 검색되었습니다."
+                    self!.searchResult.textColor = .black
+                }
+                
+            }
+        }
     }
     
-//    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-//        // Clear the search bar text and dismiss the keyboard
-//        searchBar.text = ""
-//        searchBar.resignFirstResponder()
-//    }
+    
+    //    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+    //        // Clear the search bar text and dismiss the keyboard
+    //        searchBar.text = ""
+    //        searchBar.resignFirstResponder()
+    //    }
     
     
 }
@@ -146,7 +254,6 @@ extension BlogPostViewController : UISearchBarDelegate {
 
 extension BlogPostViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print(blogPosts.count)
         return blogPosts.count
     }
     
@@ -154,22 +261,52 @@ extension BlogPostViewController : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
         if blogPosts.isEmpty {return cell}
         let currentBlogPost : BlogPost = blogPosts[indexPath.row]
-        cell.bookmarkStar.image = UIImage(systemName: "star")
+        if checkposts.filter({$0.title == currentBlogPost.title}).count != 0 {
+            cell.bookmarkStar.image = UIImage(systemName: "star.fill")
+        }
         cell.postTitle.text = currentBlogPost.title
-        cell.postIntroduction.text = currentBlogPost.date + "\n" + currentBlogPost.category
+        cell.postIntroduction.text = (currentBlogPost.date ?? "날짜없음") + "\n" + (currentBlogPost.category ?? "카테고리없음" )
         return cell
     }
+    
+    
     
     
 }
 
 
 extension BlogPostViewController : UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        webView = WebviewPost()
-        webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link)
-        navigationController?.pushViewController(webView!, animated: true)
+        guard let cell = tableView.cellForRow(at: indexPath) as? ListTableViewCell else { return }
+        let currentBlogPost : BlogPost = blogPosts[indexPath.row]
+        let tapLocation = tableView.panGestureRecognizer.location(in: cell)
+        if let accessoryView = cell.accessoryView,
+           accessoryView.frame.contains(tapLocation) {
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ReloadTableViewData1"), object: nil)
+            // Accessory view was selected
+            // Do something...
+            switch cell.bookmarkStar.image {
+            case UIImage(systemName: "star") :
+                cell.bookmarkStar.image = UIImage(systemName: "star.fill")
+                createBookmark(currentBlogPost)
+                selectData()
+            case UIImage(systemName: "star.fill") :
+                cell.bookmarkStar.image = UIImage(systemName: "star")
+                deleteBookmark(currentBlogPost)
+                
+            default : break
+            }
+        } else {
+            // Stack view was selected
+            print("Stack view was selected")
+            // Do something...
+            webView = WebviewPost()
+            webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link ?? "www.naver.com")
+            navigationController?.pushViewController(webView!, animated: true)
+        }
     }
+    
 }
 
 
@@ -230,11 +367,11 @@ extension BlogPostViewController : XMLParserDelegate {
         
     }
     
-    func parserDidEndDocument(_ parser: XMLParser) {
-        DispatchQueue.main.async { [weak self] in
-            self!.tableView.reloadData()
-        }
-    }
+//    func parserDidEndDocument(_ parser: XMLParser) {
+//        DispatchQueue.main.async { [weak self] in
+//            self!.tableView.reloadData()
+//        }
+//    }
     
     
 }

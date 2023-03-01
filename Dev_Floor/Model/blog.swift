@@ -21,9 +21,9 @@ struct Blog : Codable {
 }
 
 class BlogPost {
-    var title = String()
-    var link = String()
-    var contents = String()
-    var category = String()
-    var date = String()
+    var title : String?
+    var link : String?
+    var contents : String?
+    var category : String?
+    var date : String?
 }
