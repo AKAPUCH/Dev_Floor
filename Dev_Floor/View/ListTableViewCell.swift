@@ -83,6 +83,10 @@ final class ListTableViewCell: UITableViewCell {
 
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+    }
+    
 
     
 }

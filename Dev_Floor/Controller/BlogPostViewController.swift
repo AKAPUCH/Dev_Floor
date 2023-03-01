@@ -36,16 +36,27 @@ final class BlogPostViewController: UIViewController {
         return set
     }()
     
+    lazy var searchResult : UILabel = {
+        let set = UILabel()
+        set.text = "\(self.blogPosts.count)건이 검색되었습니다."
+        set.textColor = .clear
+        
+        return set
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackground
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadTableViewData), name: NSNotification.Name(rawValue: "ReloadTableViewData2"), object: nil)
         searchBar.delegate = self
         setNavi()
         setTable()
         setConstraints()
         getJsonData()
-        getNetwork(blogs)
+        getNetwork(blogs) {
+            DispatchQueue.main.async { [weak self] in
+                self!.tableView.reloadData()
+            }
+        }
         getContainer()
         
     }
@@ -119,7 +130,7 @@ final class BlogPostViewController: UIViewController {
     
     
     // MARK: - XML파싱
-    func getNetwork(_ content : [Blog]) {
+    func getNetwork(_ content : [Blog], completion : @escaping () -> Void) {
         for i in content{
             guard let url = URL(string: i.rss!) else { return }
             let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
@@ -137,6 +148,7 @@ final class BlogPostViewController: UIViewController {
                 let parser = XMLParser(data: data)
                 parser.delegate = self
                 parser.parse()
+                completion()
             }
             
             task.resume()
@@ -155,12 +167,18 @@ final class BlogPostViewController: UIViewController {
     func setConstraints() {
         view.addSubview(tableView)
         view.addSubview(searchBar)
+        view.addSubview(searchResult)
         tableView.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
-            make.top.equalTo(self.view.safeAreaLayoutGuide).offset(50)
+            make.top.equalTo(self.view.safeAreaLayoutGuide).offset(80)
         }
         searchBar.snp.makeConstraints { make in
             make.top.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
+            make.bottom.equalTo(self.tableView.snp.top).offset(-30)
+        }
+        searchResult.snp.makeConstraints { make in
+            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
+            make.top.equalTo(self.searchBar.snp.bottom)
             make.bottom.equalTo(self.tableView.snp.top)
         }
     }
@@ -183,22 +201,46 @@ final class BlogPostViewController: UIViewController {
         navigationController?.navigationBar.backgroundColor = .systemBackground
         title = "목록"
     }
-    
-    @objc func reloadTableViewData() {
-        selectData()
-        tableView.reloadData()
-    }
+
     
     
 }
 
+//extension BlogPostViewController : UIScrollViewDelegate {
+//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        let contentOffset_y = scrollView.contentOffset.y
+//        let tableViewContentSize = self.tableView.contentSize.height
+//        let pagination_y = tableViewContentSize * 0.2
+//
+//        if contentOffset_y > tableViewContentSize - pagination_y {
+//
+//        }
+//    }
+//}
+
 extension BlogPostViewController : UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        // Filter your array based on the search text
-        blogPosts.removeAll()
-        includetext = searchText
-        getNetwork(blogs)
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        // Filter your array based on the search text
+//
+//        includetext = searchText
+//
+//    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        if let searchText = searchBar.text {
+            includetext = searchText
+            blogPosts.removeAll()
+            getNetwork(blogs) {
+                DispatchQueue.main.async { [weak self] in
+                    self!.tableView.reloadData()
+                    self!.searchResult.text = "\(self!.blogPosts.count)건이 검색되었습니다."
+                    self!.searchResult.textColor = .black
+                }
+                
+            }
+        }
     }
+    
     
     //    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
     //        // Clear the search bar text and dismiss the keyboard
@@ -325,11 +367,11 @@ extension BlogPostViewController : XMLParserDelegate {
         
     }
     
-    func parserDidEndDocument(_ parser: XMLParser) {
-        DispatchQueue.main.async { [weak self] in
-            self!.tableView.reloadData()
-        }
-    }
+//    func parserDidEndDocument(_ parser: XMLParser) {
+//        DispatchQueue.main.async { [weak self] in
+//            self!.tableView.reloadData()
+//        }
+//    }
     
     
 }

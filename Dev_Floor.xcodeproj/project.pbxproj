@@ -26,7 +26,6 @@
 		6EF21652299BDEE80036DE39 /* BlogPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF21651299BDEE80036DE39 /* BlogPostViewController.swift */; };
 		6EF21654299BDF040036DE39 /* BookmarkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF21653299BDF040036DE39 /* BookmarkViewController.swift */; };
 		6EF21656299BDF220036DE39 /* ConfigurationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF21655299BDF220036DE39 /* ConfigurationViewController.swift */; };
-		6EF21658299BDF330036DE39 /* AppInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF21657299BDF330036DE39 /* AppInfoViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,7 +47,6 @@
 		6EF21651299BDEE80036DE39 /* BlogPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogPostViewController.swift; sourceTree = "<group>"; };
 		6EF21653299BDF040036DE39 /* BookmarkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkViewController.swift; sourceTree = "<group>"; };
 		6EF21655299BDF220036DE39 /* ConfigurationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationViewController.swift; sourceTree = "<group>"; };
-		6EF21657299BDF330036DE39 /* AppInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,7 +98,6 @@
 				6EF21651299BDEE80036DE39 /* BlogPostViewController.swift */,
 				6EF21653299BDF040036DE39 /* BookmarkViewController.swift */,
 				6EF21655299BDF220036DE39 /* ConfigurationViewController.swift */,
-				6EF21657299BDF330036DE39 /* AppInfoViewController.swift */,
 				6E4F5D1029A3D59E0093D50B /* WebviewPost.swift */,
 			);
 			path = Controller;
@@ -226,7 +223,6 @@
 				6EF2163E299BBFAB0036DE39 /* Dev_Floor.xcdatamodeld in Sources */,
 				6EF21636299BBFAB0036DE39 /* SceneDelegate.swift in Sources */,
 				6EDA676A299E64ED0071C5D6 /* ListTableViewCell.swift in Sources */,
-				6EF21658299BDF330036DE39 /* AppInfoViewController.swift in Sources */,
 				6EF21654299BDF040036DE39 /* BookmarkViewController.swift in Sources */,
 				6EF21656299BDF220036DE39 /* ConfigurationViewController.swift in Sources */,
 				6E4852CB29A26F8E00B9B861 /* blog.swift in Sources */,
