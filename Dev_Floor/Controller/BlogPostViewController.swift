@@ -179,7 +179,7 @@ final class BlogPostViewController: UIViewController {
         searchResult.snp.makeConstraints { make in
             make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
             make.top.equalTo(self.searchBar.snp.bottom)
-            make.bottom.equalTo(self.tableView.snp.top)
+            make.bottom.equalTo(self.tableView.snp.top).offset(-20)
         }
     }
     
@@ -231,6 +231,14 @@ extension BlogPostViewController : UISearchBarDelegate {
         
         if searchText == "" {
             currentPosts = blogPosts
+            searchResult.textColor = .clear
+            startIndex = 0
+            tableShowedPosts.removeAll()
+            endIndex = currentPosts.count - 1
+            if startIndex > endIndex {return}
+            tableShowedPosts += Array(currentPosts[startIndex...(endIndex - startIndex > 30 ? startIndex + 30 : endIndex)])
+            startIndex += 30
+            tableView.reloadData()
         }
     }
     
@@ -238,9 +246,14 @@ extension BlogPostViewController : UISearchBarDelegate {
         if let searchText = searchBar.text {
             currentPosts = blogPosts.filter{$0.category?.contains(searchText) ?? false}
             
-            searchResult.text = "\(self.blogPosts.count)건이 검색되었습니다."
+            searchResult.text = "\(currentPosts.count)건이 검색되었습니다."
             searchResult.textColor = .black
             startIndex = 0
+            tableShowedPosts.removeAll()
+            endIndex = currentPosts.count - 1
+            if startIndex > endIndex {return}
+            tableShowedPosts += Array(currentPosts[startIndex...(endIndex - startIndex > 30 ? startIndex + 30 : endIndex)])
+            startIndex += 30
             tableView.reloadData()
         }
     }
