@@ -15,8 +15,11 @@ final class BlogPostViewController: UIViewController {
     private let tableView = UITableView()
     private var webView : WebviewPost? = nil
     var blogs : [Blog] = []
-    var blogPosts: [BlogPost] = []
-    var checkposts : [BookmarkedPost] = []
+    var startIndex = 0
+    var endIndex = 30
+    var currentPosts : [BlogPost] = [] // 현재 참조 데이터
+    var tableShowedPosts : [BlogPost] = [] // 현재 테이블 뷰 데이터
+    var blogPosts: [BlogPost] = [] // 네트워킹 후 전체 데이터 저장
     var parser = XMLParser()
     var includetext : String = ""
     var container : NSPersistentContainer!
@@ -53,9 +56,7 @@ final class BlogPostViewController: UIViewController {
         setConstraints()
         getJsonData()
         getNetwork(blogs) {
-            DispatchQueue.main.async { [weak self] in
-                self!.tableView.reloadData()
-            }
+            self.currentPosts = self.blogPosts
         }
         getContainer()
         
@@ -87,7 +88,6 @@ final class BlogPostViewController: UIViewController {
         do{
             let contact = try self.container.viewContext.fetch(BookmarkedPost.fetchRequest())
             //배열형태로 불러온 데이터
-            checkposts = contact
         }catch {
             print(error.localizedDescription)
         }
@@ -201,52 +201,49 @@ final class BlogPostViewController: UIViewController {
         navigationController?.navigationBar.backgroundColor = .systemBackground
         title = "목록"
     }
-
+    
     
     
 }
 
-//extension BlogPostViewController : UIScrollViewDelegate {
-//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        let contentOffset_y = scrollView.contentOffset.y
-//        let tableViewContentSize = self.tableView.contentSize.height
-//        let pagination_y = tableViewContentSize * 0.2
-//
-//        if contentOffset_y > tableViewContentSize - pagination_y {
-//
-//        }
-//    }
-//}
+extension BlogPostViewController : UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView)    {
+        let contentOffset_y = scrollView.contentOffset.y
+        let tableViewContentSize = self.tableView.contentSize.height
+        let pagination_y = tableViewContentSize * 0.2
+        
+        if contentOffset_y > tableViewContentSize - pagination_y {
+            
+            endIndex = currentPosts.count - 1
+            if startIndex > endIndex {return}
+            tableShowedPosts += Array(currentPosts[startIndex...(endIndex - startIndex > 30 ? startIndex + 30 : endIndex)])
+            startIndex += 30
+            tableView.reloadData()
+            
+            
+        }
+    }
+}
 
 extension BlogPostViewController : UISearchBarDelegate {
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        // Filter your array based on the search text
-//
-//        includetext = searchText
-//
-//    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        if let searchText = searchBar.text {
-            includetext = searchText
-            blogPosts.removeAll()
-            getNetwork(blogs) {
-                DispatchQueue.main.async { [weak self] in
-                    self!.tableView.reloadData()
-                    self!.searchResult.text = "\(self!.blogPosts.count)건이 검색되었습니다."
-                    self!.searchResult.textColor = .black
-                }
-                
-            }
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // Filter your array based on the search text
+        
+        if searchText == "" {
+            currentPosts = blogPosts
         }
     }
     
-    
-    //    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-    //        // Clear the search bar text and dismiss the keyboard
-    //        searchBar.text = ""
-    //        searchBar.resignFirstResponder()
-    //    }
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        if let searchText = searchBar.text {
+            currentPosts = blogPosts.filter{$0.category?.contains(searchText) ?? false}
+            
+            searchResult.text = "\(self.blogPosts.count)건이 검색되었습니다."
+            searchResult.textColor = .black
+            startIndex = 0
+            tableView.reloadData()
+        }
+    }
     
     
 }
@@ -254,16 +251,12 @@ extension BlogPostViewController : UISearchBarDelegate {
 
 extension BlogPostViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return blogPosts.count
+        return tableShowedPosts.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
-        if blogPosts.isEmpty {return cell}
-        let currentBlogPost : BlogPost = blogPosts[indexPath.row]
-        if checkposts.filter({$0.title == currentBlogPost.title}).count != 0 {
-            cell.bookmarkStar.image = UIImage(systemName: "star.fill")
-        }
+        let currentBlogPost : BlogPost = tableShowedPosts[indexPath.row]
         cell.postTitle.text = currentBlogPost.title
         cell.postIntroduction.text = (currentBlogPost.date ?? "날짜없음") + "\n" + (currentBlogPost.category ?? "카테고리없음" )
         return cell
@@ -366,12 +359,10 @@ extension BlogPostViewController : XMLParserDelegate {
         }
         
     }
-    
-//    func parserDidEndDocument(_ parser: XMLParser) {
-//        DispatchQueue.main.async { [weak self] in
-//            self!.tableView.reloadData()
-//        }
-//    }
+    //
+    //    func parserDidEndDocument(_ parser: XMLParser) {
+    //        blogPosts.append(<#T##newElement: BlogPost##BlogPost#>)
+    //    }
     
     
 }
