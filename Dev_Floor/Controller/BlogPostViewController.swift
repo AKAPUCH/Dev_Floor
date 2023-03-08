@@ -49,6 +49,7 @@ final class BlogPostViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.backgroundColor = UIColor.systemBackground
         searchBar.delegate = self
         setNavi()
@@ -60,6 +61,13 @@ final class BlogPostViewController: UIViewController {
         }
         getContainer()
         
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        print("소멸1")
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        print("곧사라진다")
     }
     
     // MARK: - 코어 데이터 관련
@@ -207,7 +215,8 @@ final class BlogPostViewController: UIViewController {
 }
 
 extension BlogPostViewController : UIScrollViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView)    {
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         let contentOffset_y = scrollView.contentOffset.y
         let tableViewContentSize = self.tableView.contentSize.height
         let pagination_y = tableViewContentSize * 0.2
@@ -223,6 +232,23 @@ extension BlogPostViewController : UIScrollViewDelegate {
             
         }
     }
+    
+//    func scrollViewDidScroll(_ scrollView: UIScrollView)    {
+//        let contentOffset_y = scrollView.contentOffset.y
+//        let tableViewContentSize = self.tableView.contentSize.height
+//        let pagination_y = tableViewContentSize * 0.2
+//
+//        if contentOffset_y > tableViewContentSize - pagination_y {
+//
+//            endIndex = currentPosts.count - 1
+//            if startIndex > endIndex {return}
+//            tableShowedPosts += Array(currentPosts[startIndex...(endIndex - startIndex > 30 ? startIndex + 30 : endIndex)])
+//            startIndex += 30
+//            tableView.reloadData()
+//
+//
+//        }
+//    }
 }
 
 extension BlogPostViewController : UISearchBarDelegate {
