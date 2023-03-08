@@ -372,10 +372,6 @@ extension BlogPostViewController : XMLParserDelegate {
         }
         
     }
-    //
-    //    func parserDidEndDocument(_ parser: XMLParser) {
-    //        blogPosts.append(<#T##newElement: BlogPost##BlogPost#>)
-    //    }
     
     
 }
