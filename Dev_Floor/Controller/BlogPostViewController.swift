@@ -13,23 +13,27 @@ import CoreData
 final class BlogPostViewController: UIViewController {
     
     private let tableView = UITableView()
-    private var webView : WebviewPost? = nil
+    private var webView : WebviewPost?
     var blogs : [Blog] = []
+    var currentDate : Date? // 코어 데이터의 엔티티 중 가장 최근 날짜를 담습니다.
     var startIndex = 0
     var endIndex = 30
     var currentPosts : [BlogPost] = [] // 현재 참조 데이터
     var tableShowedPosts : [BlogPost] = [] // 현재 테이블 뷰 데이터
     var blogPosts: [BlogPost] = [] // 네트워킹 후 전체 데이터 저장
-    var parser = XMLParser()
-    var includetext : String = ""
+    var totalPosts : [BlogPost] = [] // 전체 데이터 저장
     var container : NSPersistentContainer!
-    var eName = String()
-    var postTitle = String()
-    var postLink = String()
-    var categoryText = String()
-    var contents = String()
-    var postDate = String()
     
+    // MARK: - 파싱한 데이터 담는 변수들
+    var eName : String?
+    var postTitle : String?
+    var postLink : String?
+    var categoryText = ""
+    var contents : String?
+    var postDate : String?
+    
+    
+    // MARK: - 서치바, 검색 결과 라벨
     var searchBar : UISearchBar = {
         let set = UISearchBar()
         set.spellCheckingType = .no
@@ -43,7 +47,7 @@ final class BlogPostViewController: UIViewController {
         let set = UILabel()
         set.text = "\(self.blogPosts.count)건이 검색되었습니다."
         set.textColor = .clear
-        
+        set.font = .systemFont(ofSize: 14)
         return set
     }()
     
@@ -56,28 +60,21 @@ final class BlogPostViewController: UIViewController {
         setTable()
         setConstraints()
         getJsonData()
-        getNetwork(blogs) {
-            self.currentPosts = self.blogPosts
-        }
+        getNetwork(blogs)
         getContainer()
         
-    }
-    
-    override func viewDidDisappear(_ animated: Bool) {
-        print("소멸1")
-    }
-    override func viewWillDisappear(_ animated: Bool) {
-        print("곧사라진다")
     }
     
     // MARK: - 코어 데이터 관련
     func getContainer() {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         self.container = appDelegate.persistentContainer
-        selectData()
+        getOldPosts()
     }
     
-    func createBookmark(_ currentPost : BlogPost) {
+    
+    // MARK: - blogPosts 배열의 데이터를 core data에 저장
+    func savePosts(_ currentPost : BlogPost) {
         guard let entity = NSEntityDescription.entity(forEntityName: "BookmarkedPost", in: self.container.viewContext) else {return}
         let savedObject = NSManagedObject(entity: entity, insertInto: self.container.viewContext)
         savedObject.setValue(currentPost.title, forKey: "title")
@@ -92,7 +89,8 @@ final class BlogPostViewController: UIViewController {
         }
     }
     
-    func selectData() {
+    // MARK: - 날짜 오름차순으로 core data에서 데이터를 불러오고, 완료되면 totalPosts 배열에 저장
+    func getOldPosts() {
         do{
             let contact = try self.container.viewContext.fetch(BookmarkedPost.fetchRequest())
             //배열형태로 불러온 데이터
@@ -101,27 +99,35 @@ final class BlogPostViewController: UIViewController {
         }
     }
     
-    func deleteBookmark(_ currentPost : BlogPost) {
+    
+    // MARK: - 로컬 db 전체데이터 삭제용.
+//    func deleteBookmark(_ currentPost : BlogPost) {
+//
+//        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest.init(entityName: "BookmarkedPost")
+//        fetchRequest.predicate = NSPredicate(format: "link = %@", currentPost.link ?? "www.naver.com")
+//
+//        do {
+//            let test = try self.container.viewContext.fetch(fetchRequest)
+//            let objectToDelete = test[0] as! NSManagedObject
+//            self.container.viewContext.delete(objectToDelete)
+//            do {
+//                try self.container.viewContext.save()
+//            } catch {
+//                print(error.localizedDescription)
+//            }
+//        } catch {
+//            print(error.localizedDescription)
+//        }
+//    }
+    
+    
+    // MARK: - 즐겨찾기 등록/해제 시 isBookmarked 속성 토글
+    func manageBookmarks() {
         
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest.init(entityName: "BookmarkedPost")
-        fetchRequest.predicate = NSPredicate(format: "link = %@", currentPost.link ?? "www.naver.com")
-        
-        do {
-            let test = try self.container.viewContext.fetch(fetchRequest)
-            let objectToDelete = test[0] as! NSManagedObject
-            self.container.viewContext.delete(objectToDelete)
-            do {
-                try self.container.viewContext.save()
-            } catch {
-                print(error.localizedDescription)
-            }
-        } catch {
-            print(error.localizedDescription)
-        }
     }
     
     
-    // MARK: - dataAsset JSON파일 파싱
+    // MARK: - 블로그 정보 json파일을 blogs 배열에 저장
     func getJsonData() {
         let jsonDecoder : JSONDecoder = JSONDecoder()
         
@@ -137,9 +143,11 @@ final class BlogPostViewController: UIViewController {
     }
     
     
-    // MARK: - XML파싱
-    func getNetwork(_ content : [Blog], completion : @escaping () -> Void) {
-        for i in content{
+    // MARK: - blogs을 순회하며 rss로 비동기 통신 및 결과 xml파싱 시작
+    func getNetwork(_ content: [Blog]) {
+        let dispatchGroup = DispatchGroup()
+        
+        for i in content {
             guard let url = URL(string: i.rss!) else { return }
             let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
                 guard let self = self else { return }
@@ -156,12 +164,19 @@ final class BlogPostViewController: UIViewController {
                 let parser = XMLParser(data: data)
                 parser.delegate = self
                 parser.parse()
-                completion()
             }
             
+            dispatchGroup.enter()
             task.resume()
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.notify(queue: DispatchQueue.main) {
+            // This code will be executed after all tasks have completed
+            
         }
     }
+
     
     
     // MARK: - UI관련
@@ -187,7 +202,7 @@ final class BlogPostViewController: UIViewController {
         searchResult.snp.makeConstraints { make in
             make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
             make.top.equalTo(self.searchBar.snp.bottom)
-            make.bottom.equalTo(self.tableView.snp.top).offset(-20)
+            make.bottom.equalTo(self.tableView.snp.top).offset(-10)
         }
     }
     
@@ -213,6 +228,9 @@ final class BlogPostViewController: UIViewController {
     
     
 }
+
+
+// MARK: - 페이지네이션 구현
 
 extension BlogPostViewController : UIScrollViewDelegate {
     
@@ -251,6 +269,8 @@ extension BlogPostViewController : UIScrollViewDelegate {
 //    }
 }
 
+
+// MARK: - 검색 바 구현
 extension BlogPostViewController : UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         // Filter your array based on the search text
@@ -288,6 +308,7 @@ extension BlogPostViewController : UISearchBarDelegate {
 }
 
 
+// MARK: - 테이블 뷰 설정, reloadData시 호출
 extension BlogPostViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableShowedPosts.count
@@ -307,6 +328,7 @@ extension BlogPostViewController : UITableViewDataSource {
 }
 
 
+// MARK: - 즐겨찾기 등록/해제 시 화면 로직
 extension BlogPostViewController : UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -321,11 +343,11 @@ extension BlogPostViewController : UITableViewDelegate {
             switch cell.bookmarkStar.image {
             case UIImage(systemName: "star") :
                 cell.bookmarkStar.image = UIImage(systemName: "star.fill")
-                createBookmark(currentBlogPost)
-                selectData()
+                savePosts(currentBlogPost)
+                getOldPosts()
             case UIImage(systemName: "star.fill") :
                 cell.bookmarkStar.image = UIImage(systemName: "star")
-                deleteBookmark(currentBlogPost)
+//                deleteBookmark(currentBlogPost)
                 
             default : break
             }
@@ -343,23 +365,21 @@ extension BlogPostViewController : UITableViewDelegate {
 
 
 
+// MARK: -  xml파싱 로직
 extension BlogPostViewController : XMLParserDelegate {
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
         eName = elementName
         if elementName == "item" {
-            postTitle = String()
-            postLink = String()
-            categoryText = String()
-            postDate = String()
-            contents = String()
+            postTitle = ""
+            postLink = ""
+            categoryText = ""
+            postDate = ""
+            contents = ""
         }
     }
     
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         if elementName == "item" {
-            if includetext != ""{
-                guard categoryText.contains(includetext) else {return}
-            }
             let blogPost: BlogPost = BlogPost()
             blogPost.title = postTitle
             blogPost.link = postLink
@@ -376,9 +396,9 @@ extension BlogPostViewController : XMLParserDelegate {
         
         if (!data.isEmpty) {
             if eName == "title" {
-                postTitle += data
+                postTitle = data
             } else if eName == "link" {
-                postLink += data
+                postLink = data
             } else if eName == "category" {
                 categoryText += data + " "
             } else if eName == "pubDate" {
@@ -393,15 +413,11 @@ extension BlogPostViewController : XMLParserDelegate {
                     print("Unable to parse date")
                 }
             } else if eName == "description" {
-                contents += data
+                contents = data
             }
         }
         
     }
-    //
-    //    func parserDidEndDocument(_ parser: XMLParser) {
-    //        blogPosts.append(<#T##newElement: BlogPost##BlogPost#>)
-    //    }
     
     
 }

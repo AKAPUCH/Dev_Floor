@@ -21,6 +21,7 @@ extension BookmarkedPost {
     @NSManaged public var category: String?
     @NSManaged public var contents: String?
     @NSManaged public var date: String?
+    @NSManaged public var isBookmarked: Bool
 
 }
 

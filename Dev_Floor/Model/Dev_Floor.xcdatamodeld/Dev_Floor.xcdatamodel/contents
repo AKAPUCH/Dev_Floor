@@ -4,6 +4,7 @@
         <attribute name="category" optional="YES" attributeType="String"/>
         <attribute name="contents" optional="YES" attributeType="String"/>
         <attribute name="date" optional="YES" attributeType="String"/>
+        <attribute name="isBookmarked" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="link" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
     </entity>
