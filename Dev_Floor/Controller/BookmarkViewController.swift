@@ -36,7 +36,7 @@ final class BookmarkViewController: UIViewController {
     func selectData() {
         blogPosts.removeAll()
         do{
-            let contact = try self.container.viewContext.fetch(BookmarkedPost.fetchRequest())
+            let contact = try self.container.viewContext.fetch(OldPost.fetchRequest())
             //배열형태로 불러온 데이터
             for bookmarkedPost in contact {
                 let bookmarkedBlog = BlogPost()

@@ -10,6 +10,6 @@ import Foundation
 import CoreData
 
 @objc(BookmarkedPost)
-public class BookmarkedPost: NSManagedObject {
+public class OldPost: NSManagedObject {
 
 }
