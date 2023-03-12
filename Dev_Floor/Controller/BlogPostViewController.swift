@@ -17,10 +17,12 @@ final class BlogPostViewController: UIViewController {
     var blogs : [Blog] = []
     var currentDate : Date? // 코어 데이터의 엔티티 중 가장 최근 날짜를 담습니다.
     var pageNumber = 0
-    var currentPosts : [BlogPost] = [] // 현재 참조 데이터
-    var tableShowedPosts : [BlogPost] = [] // 현재 테이블 뷰 데이터
-    var blogPosts: [BlogPost] = [] // 네트워킹 후 전체 데이터 저장
+    var latestPosts: [BlogPost] = [] // 네트워킹 후 최신 데이터 저장
     var totalPosts : [BlogPost] = [] // 전체 데이터 저장
+    var currentPosts : [BlogPost] = [] //검색했을 때를 고려, 현재 참조중인 배열
+    var searchedPosts : [BlogPost] = [] // 실제 테이블의 데이터 배열
+    var updatedTime : Int = 0 // 최신 데이터 갱신 여부
+    var includeText : String = ""
     var container : NSPersistentContainer!
     
     // MARK: - 파싱한 데이터 담는 변수들
@@ -44,8 +46,7 @@ final class BlogPostViewController: UIViewController {
     
     lazy var searchResult : UILabel = {
         let set = UILabel()
-        set.text = "\(self.blogPosts.count)건이 검색되었습니다."
-        set.textColor = .clear
+        set.textColor = .black
         set.font = .systemFont(ofSize: 14)
         return set
     }()
@@ -75,7 +76,7 @@ final class BlogPostViewController: UIViewController {
     }
     
     
-    // MARK: - blogPosts 배열의 데이터를 core data에 저장
+    // MARK: - latestPosts 배열의 데이터를 core data에 저장
     func savePosts(_ latestPost : [BlogPost]) {
         let dispatchGroup = DispatchGroup()
         guard let entity = NSEntityDescription.entity(forEntityName: "OldPost", in: self.container.viewContext) else {return}
@@ -125,6 +126,29 @@ final class BlogPostViewController: UIViewController {
         }
     }
     
+    
+    // MARK: - 검색 시
+    func getSearchedPosts(_ pageNum : Int, _ searchText : String, _ completion : @escaping () -> Void) {
+        DispatchQueue.global(qos: .background).async { [self] in
+            let fetchRequest: NSFetchRequest<OldPost> = OldPost.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+            let predicate = NSPredicate(format: "(title CONTAINS[c] %@ OR content CONTAINS[c] %@) AND searchtext == %@", searchText, searchText, searchText)
+            fetchRequest.predicate = predicate
+            fetchRequest.fetchOffset = pageNumber * 30
+            fetchRequest.fetchLimit = 30
+            do {
+                let fetchedResults = try container.viewContext.fetch(fetchRequest)
+                if currentDate == nil, fetchedResults.count != 0 {currentDate = fetchedResults[0].date}
+                // 가장 최근 날짜 가져오기
+                searchedPosts += reassembleEntity(fetchedResults)
+                //페이지네이션마다 30개씩 가져오기
+                completion()
+            } catch {
+                print("Error fetching data: \(error.localizedDescription)")
+            }
+        }
+    }
+
     
     // MARK: - 로컬 db 전체데이터 삭제용.
     //    func deleteAllPosts(_ currentPost : BlogPost) {
@@ -192,13 +216,13 @@ final class BlogPostViewController: UIViewController {
             }catch {
                 print(error.localizedDescription)
             }
-            blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory") && $0.rss != "http://hongji3354.tistory.com/rss"}
-            
+            blogs = blogs.filter{$0.rss != nil && $0.blog!.contains("tistory")}
         }
         
         
         // MARK: - blogs을 순회하며 rss로 비동기 통신 및 결과 xml파싱 시작
         func getNetwork(_ content: [Blog]) {
+            if currentDate != nil {return} // 이미 최신 정보를 갱신한 이력이 있다면, 작업을 취소
             let dispatchGroup = DispatchGroup()
             
             for i in content {
@@ -225,9 +249,13 @@ final class BlogPostViewController: UIViewController {
                 dispatchGroup.leave()
             }
             
-            dispatchGroup.notify(queue: DispatchQueue.main) {
-                // This code will be executed after all tasks have completed
-                
+            dispatchGroup.notify(queue: .main) {[self] in
+                // 날짜순 정렬 후, 최종배열에 더해주기
+                latestPosts.sort{$0.date! < $1.date!}
+                totalPosts.insert(contentsOf: latestPosts, at: 0)
+                savePosts(latestPosts)
+                searchResult.text = "새로 추가된 포스트 \(latestPosts.count) 발견, 위로 스크롤시 갱신됩니다"
+                updatedTime += 1
             }
         }
         
@@ -288,35 +316,52 @@ final class BlogPostViewController: UIViewController {
     
     extension BlogPostViewController : UIScrollViewDelegate {
         
-        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-            let contentOffset_y = scrollView.contentOffset.y
-            let tableViewContentSize = self.tableView.contentSize.height
-            let pagination_y = tableViewContentSize * 0.2
-            
-            if contentOffset_y > tableViewContentSize - pagination_y {
-                
-                tableView.reloadData()
-                
-                
-            }
-        }
         
-        //    func scrollViewDidScroll(_ scrollView: UIScrollView)    {
-        //        let contentOffset_y = scrollView.contentOffset.y
-        //        let tableViewContentSize = self.tableView.contentSize.height
-        //        let pagination_y = tableViewContentSize * 0.2
-        //
-        //        if contentOffset_y > tableViewContentSize - pagination_y {
-        //
-        //            endIndex = currentPosts.count - 1
-        //            if startIndex > endIndex {return}
-        //            tableShowedPosts += Array(currentPosts[startIndex...(endIndex - startIndex > 30 ? startIndex + 30 : endIndex)])
-        //            startIndex += 30
-        //            tableView.reloadData()
-        //
-        //
-        //        }
-        //    }
+
+
+            func scrollViewDidScroll(_ scrollView: UIScrollView)    {
+                let contentOffsetY = scrollView.contentOffset.y
+                let contentHeight = scrollView.contentSize.height
+                let frameHeight = scrollView.frame.height
+                
+                // MARK: - 스크롤 위로(최신 데이터 가져오기)
+                if contentOffsetY <= 0 {
+                    if updatedTime == 1{
+                        UIView.animate(withDuration: 1) {[self] in
+                            tableView.reloadData()
+                            //데이터 갱신 후 최상단으로 이동.
+                            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+                        }
+                        searchResult.textColor = .clear
+                        updatedTime += 1
+                    } else {
+                        searchResult.text = "최신정보를 가져오고 있습니다..."
+                    }
+                }
+                
+                // MARK: - 스크롤 아래로(구 데이터 가져오기)
+                if contentOffsetY >= contentHeight - frameHeight {
+                    if includeText == "" {
+                        getOldPosts(pageNumber) { [self] in
+                            currentPosts = totalPosts
+                            UIView.animate(withDuration: 1) {[self] in
+                                tableView.reloadData()
+                            }
+                            pageNumber += 1
+                        }
+                    }
+                    else {
+                        pageNumber = 0
+                        getSearchedPosts(pageNumber,includeText) { [self] in
+                            currentPosts = totalPosts
+                            UIView.animate(withDuration: 1) {[self] in
+                                tableView.reloadData()
+                            }
+                            pageNumber += 1
+                        }
+                    }
+                }
+            }
     }
     
     
@@ -326,7 +371,7 @@ final class BlogPostViewController: UIViewController {
             // Filter your array based on the search text
             
             if searchText == "" {
-                currentPosts = blogPosts
+                currentPosts = latestPosts
                 searchResult.textColor = .clear
                 tableView.reloadData()
             }
@@ -334,7 +379,7 @@ final class BlogPostViewController: UIViewController {
         
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
             if let searchText = searchBar.text {
-                currentPosts = blogPosts.filter{$0.category?.contains(searchText) ?? false}
+                currentPosts = latestPosts.filter{$0.category?.contains(searchText) ?? false}
                 
                 searchResult.text = "\(currentPosts.count)건이 검색되었습니다."
                 searchResult.textColor = .black
@@ -371,7 +416,7 @@ final class BlogPostViewController: UIViewController {
         
         func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
             guard let cell = tableView.cellForRow(at: indexPath) as? ListTableViewCell else { return }
-            let currentBlogPost : BlogPost = blogPosts[indexPath.row]
+            let currentBlogPost : BlogPost = latestPosts[indexPath.row]
             let tapLocation = tableView.panGestureRecognizer.location(in: cell)
             if let accessoryView = cell.accessoryView,
                accessoryView.frame.contains(tapLocation) {
@@ -394,7 +439,7 @@ final class BlogPostViewController: UIViewController {
                 print("Stack view was selected")
                 // Do something...
                 webView = WebviewPost()
-                webView?.blogPostURL = URL(string: blogPosts[indexPath.row].link ?? "www.naver.com")
+                webView?.blogPostURL = URL(string: latestPosts[indexPath.row].link ?? "www.naver.com")
                 navigationController?.pushViewController(webView!, animated: true)
             }
         }
@@ -424,7 +469,7 @@ final class BlogPostViewController: UIViewController {
                 blogPost.category = categoryText
                 blogPost.contents = contents
                 blogPost.date = postDate
-                blogPosts.append(blogPost)
+                latestPosts.append(blogPost)
             }
         }
         
