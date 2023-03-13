@@ -60,8 +60,9 @@ final class BlogPostViewController: UIViewController {
         setTable()
         setConstraints()
         getJsonData()
-        getNetwork(blogs)
         getContainer()
+        
+        
         
     }
     
@@ -72,6 +73,7 @@ final class BlogPostViewController: UIViewController {
         //최초 로드시 테이블 뷰 데이터를 갱신합니다.
         getOldPosts(pageNumber) {[self] in
             tableView.reloadData()
+            getNetwork(blogs)
         }
     }
     
