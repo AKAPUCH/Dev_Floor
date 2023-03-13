@@ -10,20 +10,21 @@ import Foundation
 import CoreData
 
 
-extension BookmarkedPost {
+extension OldPost {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<BookmarkedPost> {
-        return NSFetchRequest<BookmarkedPost>(entityName: "BookmarkedPost")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<OldPost> {
+        return NSFetchRequest<OldPost>(entityName: "BookmarkedPost")
     }
 
     @NSManaged public var title: String?
     @NSManaged public var link: String?
     @NSManaged public var category: String?
     @NSManaged public var contents: String?
-    @NSManaged public var date: String?
+    @NSManaged public var date: Date?
+    @NSManaged public var isBookmarked: Bool
 
 }
 
-extension BookmarkedPost : Identifiable {
+extension OldPost : Identifiable {
 
 }
