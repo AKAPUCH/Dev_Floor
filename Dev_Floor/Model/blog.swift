@@ -26,14 +26,12 @@ class BlogPost {
     var contents : String?
     var category : String?
     var date : Date?
-    var isBookmarked : Bool?
     
-    init(title: String? = nil, link: String? = nil, contents: String? = nil, category: String? = nil, date: Date? = nil, isBookmarked: Bool? = nil) {
+    init(title: String? = nil, link: String? = nil, contents: String? = nil, category: String? = nil, date: Date? = nil) {
         self.title = title
         self.link = link
         self.contents = contents
         self.category = category
         self.date = date
-        self.isBookmarked = isBookmarked
     }
 }

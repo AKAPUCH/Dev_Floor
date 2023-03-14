@@ -103,7 +103,7 @@ extension BookmarkViewController : UITableViewDataSource {
         let currentBlogPost : BlogPost = blogPosts[indexPath.row]
         cell.bookmarkStar.image = UIImage(systemName: "star.fill")
         cell.postTitle.text = currentBlogPost.title
-        cell.postIntroduction.text = (currentBlogPost.date ?? "날짜없음") + "\n" + (currentBlogPost.category ?? "카테고리없음" )
+//        cell.postIntroduction.text = change
         return cell
     }
     

@@ -19,10 +19,10 @@ final class BlogPostViewController: UIViewController {
     var pageNumber = 0
     var latestPosts: [BlogPost] = [] // 네트워킹 후 최신 데이터 저장
     var totalPosts : [BlogPost] = [] // 전체 데이터 저장
-    var currentPosts : [BlogPost] = [] //검색했을 때를 고려, 현재 참조중인 배열
     var searchedPosts : [BlogPost] = [] // 실제 테이블의 데이터 배열
     var updatedTime : Int = 0 // 최신 데이터 갱신 여부
     var includeText : String = ""
+//    var somethingLoading : Bool = false
     var container : NSPersistentContainer!
     
     // MARK: - 파싱한 데이터 담는 변수들
@@ -31,7 +31,7 @@ final class BlogPostViewController: UIViewController {
     var postLink : String?
     var categoryText = ""
     var contents : String?
-    var postDate : String?
+    var postDate : Date?
     
     
     // MARK: - 서치바, 검색 결과 라벨
@@ -61,9 +61,6 @@ final class BlogPostViewController: UIViewController {
         setConstraints()
         getJsonData()
         getContainer()
-        
-        
-        
     }
     
     // MARK: - 코어 데이터 관련
@@ -71,9 +68,10 @@ final class BlogPostViewController: UIViewController {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         self.container = appDelegate.persistentContainer
         //최초 로드시 테이블 뷰 데이터를 갱신합니다.
-        getOldPosts(pageNumber) {[self] in
+        getOldPosts() {[self] in
             tableView.reloadData()
-            getNetwork(blogs)
+            pageNumber += 1
+            getNewPost(blogs)
         }
     }
     
@@ -83,6 +81,7 @@ final class BlogPostViewController: UIViewController {
         let dispatchGroup = DispatchGroup()
         guard let entity = NSEntityDescription.entity(forEntityName: "OldPost", in: self.container.viewContext) else {return}
         let savedObject = NSManagedObject(entity: entity, insertInto: self.container.viewContext)
+//        somethingLoading = true
         for currentPost in latestPost {
             dispatchGroup.enter()
             DispatchQueue.global(qos: .background).async { [self] in
@@ -91,7 +90,7 @@ final class BlogPostViewController: UIViewController {
                 savedObject.setValue(currentPost.category, forKey: "category")
                 savedObject.setValue(currentPost.contents, forKey: "contents")
                 savedObject.setValue(currentPost.date, forKey: "date")
-                savedObject.setValue(currentPost.isBookmarked, forKey: "isBookmarked")
+                savedObject.setValue(false, forKey: "isBookmarked")
                 
                 do {
                     try container.viewContext.save()
@@ -103,13 +102,15 @@ final class BlogPostViewController: UIViewController {
         }
         
         dispatchGroup.notify(queue: .main) { [self] in
-            tableView.reloadData()
+            
+            print("최신정보 코어 데이터 등록완료")
+//            somethingLoading = false
         }
         
     }
     
     // MARK: - 날짜 오름차순으로 core data에서 데이터를 불러오고, 완료되면 totalPosts 배열에 저장
-    func getOldPosts(_ pageNum : Int, _ completion : @escaping () -> Void) {
+    func getOldPosts(_ completion : @escaping () -> Void) {
         DispatchQueue.global(qos: .background).async { [self] in
             let fetchRequest: NSFetchRequest<OldPost> = OldPost.fetchRequest()
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
@@ -130,7 +131,7 @@ final class BlogPostViewController: UIViewController {
     
     
     // MARK: - 검색 시
-    func getSearchedPosts(_ pageNum : Int, _ searchText : String, _ completion : @escaping () -> Void) {
+    func getSearchedPosts(_ searchText : String, _ completion : @escaping () -> Void) {
         DispatchQueue.global(qos: .background).async { [self] in
             let fetchRequest: NSFetchRequest<OldPost> = OldPost.fetchRequest()
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
@@ -140,7 +141,6 @@ final class BlogPostViewController: UIViewController {
             fetchRequest.fetchLimit = 30
             do {
                 let fetchedResults = try container.viewContext.fetch(fetchRequest)
-                if currentDate == nil, fetchedResults.count != 0 {currentDate = fetchedResults[0].date}
                 // 가장 최근 날짜 가져오기
                 searchedPosts += reassembleEntity(fetchedResults)
                 //페이지네이션마다 30개씩 가져오기
@@ -201,8 +201,7 @@ final class BlogPostViewController: UIViewController {
                          link : $0.link,
                          contents : $0.contents,
                          category : $0.category,
-                         date : $0.date,
-                         isBookmarked : $0.isBookmarked
+                         date : $0.date
                 )
             }
         }
@@ -223,8 +222,7 @@ final class BlogPostViewController: UIViewController {
         
         
         // MARK: - blogs을 순회하며 rss로 비동기 통신 및 결과 xml파싱 시작
-        func getNetwork(_ content: [Blog]) {
-            if currentDate != nil {return} // 이미 최신 정보를 갱신한 이력이 있다면, 작업을 취소
+        func getNewPost(_ content: [Blog]) {
             let dispatchGroup = DispatchGroup()
             
             for i in content {
@@ -309,6 +307,15 @@ final class BlogPostViewController: UIViewController {
             title = "목록"
         }
         
+    func changeDateToString(_ date : Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy년 M월 d일"
+        let formattedDate = dateFormatter.string(from: date)
+        
+        return formattedDate
+    }
+    
+        
         
         
     }
@@ -344,22 +351,21 @@ final class BlogPostViewController: UIViewController {
                 // MARK: - 스크롤 아래로(구 데이터 가져오기)
                 if contentOffsetY >= contentHeight - frameHeight {
                     if includeText == "" {
-                        getOldPosts(pageNumber) { [self] in
-                            currentPosts = totalPosts
+                        getOldPosts() { [self] in
                             UIView.animate(withDuration: 1) {[self] in
                                 tableView.reloadData()
+                                pageNumber += 1
                             }
-                            pageNumber += 1
+                            
                         }
                     }
                     else {
-                        pageNumber = 0
-                        getSearchedPosts(pageNumber,includeText) { [self] in
-                            currentPosts = totalPosts
+                        getSearchedPosts(includeText) { [self] in
                             UIView.animate(withDuration: 1) {[self] in
                                 tableView.reloadData()
+                                pageNumber += 1
                             }
-                            pageNumber += 1
+                            
                         }
                     }
                 }
@@ -371,39 +377,46 @@ final class BlogPostViewController: UIViewController {
     extension BlogPostViewController : UISearchBarDelegate {
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
             // Filter your array based on the search text
-            
+            includeText = searchText
             if searchText == "" {
-                currentPosts = latestPosts
-                searchResult.textColor = .clear
+                pageNumber = 0
                 tableView.reloadData()
             }
         }
         
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-            if let searchText = searchBar.text {
-                currentPosts = latestPosts.filter{$0.category?.contains(searchText) ?? false}
-                
-                searchResult.text = "\(currentPosts.count)건이 검색되었습니다."
-                searchResult.textColor = .black
+            if updatedTime <= 1 {
+                searchResult.text = "최신 정보 갱신 후 다시 시도해주세요!"
+                return
+            }
+            let searchText = searchBar.text!
+            pageNumber = 0
+            searchedPosts.removeAll()
+            if searchText == "" {
                 tableView.reloadData()
             }
+            else {
+                getSearchedPosts(searchText) {[self] in
+                    tableView.reloadData()
+                }
+            }
         }
-        
-        
     }
     
     
     // MARK: - 테이블 뷰 설정, reloadData시 호출
     extension BlogPostViewController : UITableViewDataSource {
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-            return tableShowedPosts.count
+            return 30
         }
         
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: "BlogCell", for: indexPath) as! ListTableViewCell
-            let currentBlogPost : BlogPost = tableShowedPosts[indexPath.row]
+            let currentBlogPost : BlogPost
+            if includeText == "" {currentBlogPost = totalPosts[indexPath.row + pageNumber * 30]}
+            else {currentBlogPost = searchedPosts[indexPath.row + pageNumber * 30]}
             cell.postTitle.text = currentBlogPost.title
-            cell.postIntroduction.text = (currentBlogPost.date ?? "날짜없음") + "\n" + (currentBlogPost.category ?? "카테고리없음" )
+            cell.postIntroduction.text = changeDateToString(currentBlogPost.date!)
             return cell
         }
         
@@ -418,20 +431,20 @@ final class BlogPostViewController: UIViewController {
         
         func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
             guard let cell = tableView.cellForRow(at: indexPath) as? ListTableViewCell else { return }
-            let currentBlogPost : BlogPost = latestPosts[indexPath.row]
+            let currentBlogPost : BlogPost
+            if includeText == "" {currentBlogPost = totalPosts[indexPath.row + pageNumber * 30]}
+            else {currentBlogPost = searchedPosts[indexPath.row + pageNumber * 30]}
             let tapLocation = tableView.panGestureRecognizer.location(in: cell)
             if let accessoryView = cell.accessoryView,
                accessoryView.frame.contains(tapLocation) {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ReloadTableViewData1"), object: nil)
+                
                 // Accessory view was selected
-                // Do something...
                 switch cell.bookmarkStar.image {
                 case UIImage(systemName: "star") :
                     cell.bookmarkStar.image = UIImage(systemName: "star.fill")
                     
                 case UIImage(systemName: "star.fill") :
                     cell.bookmarkStar.image = UIImage(systemName: "star")
-                    //                deleteBookmark(currentBlogPost)
                     
                 default : break
                 }
@@ -458,7 +471,6 @@ final class BlogPostViewController: UIViewController {
                 postTitle = ""
                 postLink = ""
                 categoryText = ""
-                postDate = ""
                 contents = ""
             }
         }
@@ -477,7 +489,6 @@ final class BlogPostViewController: UIViewController {
         
         func parser(_ parser: XMLParser, foundCharacters string: String) {
             let data = string.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
-            //let data = string.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
             
             if (!data.isEmpty) {
                 if eName == "title" {
@@ -491,9 +502,8 @@ final class BlogPostViewController: UIViewController {
                     dateFormatter.locale = Locale(identifier: "en_US_POSIX")
                     dateFormatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
                     if let date = dateFormatter.date(from: data) {
-                        dateFormatter.dateFormat = "yyyy년 M월 d일"
-                        let formattedDate = dateFormatter.string(from: date)
-                        postDate = formattedDate
+
+                        postDate = date
                     } else {
                         print("Unable to parse date")
                     }
