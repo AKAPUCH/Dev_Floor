@@ -21,7 +21,7 @@ final class BookmarkViewController: UIViewController {
         setTable()
         setConstraints()
         getContainer()
-        selectData()
+//        selectData()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableViewData), name: NSNotification.Name(rawValue: "ReloadTableViewData1"), object: nil)
         // Do any additional setup after loading the view.
     }
@@ -33,24 +33,24 @@ final class BookmarkViewController: UIViewController {
     }
     
     
-    func selectData() {
-        blogPosts.removeAll()
-        do{
-            let contact = try self.container.viewContext.fetch(OldPost.fetchRequest())
-            //배열형태로 불러온 데이터
-            for bookmarkedPost in contact {
-                let bookmarkedBlog = BlogPost()
-                bookmarkedBlog.date  = bookmarkedPost.date
-                bookmarkedBlog.category  = bookmarkedPost.category
-                bookmarkedBlog.link  = bookmarkedPost.link
-                bookmarkedBlog.title  = bookmarkedPost.title
-                bookmarkedBlog.contents = bookmarkedPost.contents
-                blogPosts.append(bookmarkedBlog)
-            }
-        }catch {
-            print(error.localizedDescription)
-        }
-    }
+//    func selectData() {
+//        blogPosts.removeAll()
+//        do{
+//            let contact = try self.container.viewContext.fetch(OldPost.fetchRequest())
+//            //배열형태로 불러온 데이터
+//            for bookmarkedPost in contact {
+//                let bookmarkedBlog = BlogPost()
+//                bookmarkedBlog.date  = bookmarkedPost.date
+//                bookmarkedBlog.category  = bookmarkedPost.category
+//                bookmarkedBlog.link  = bookmarkedPost.link
+//                bookmarkedBlog.title  = bookmarkedPost.title
+//                bookmarkedBlog.contents = bookmarkedPost.contents
+//                blogPosts.append(bookmarkedBlog)
+//            }
+//        }catch {
+//            print(error.localizedDescription)
+//        }
+//    }
 
     
     func setTable() {

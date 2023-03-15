@@ -1,5 +1,5 @@
 //
-//  BookmarkedPost+CoreDataProperties.swift
+//  OldPost+CoreDataProperties.swift
 //  Dev_Floor
 //
 //  Created by 최우태 on 2023/02/26.
@@ -13,7 +13,7 @@ import CoreData
 extension OldPost {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<OldPost> {
-        return NSFetchRequest<OldPost>(entityName: "BookmarkedPost")
+        return NSFetchRequest<OldPost>(entityName: "OldPost")
     }
 
     @NSManaged public var title: String?
